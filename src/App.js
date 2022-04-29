@@ -14,49 +14,108 @@ class Trials extends React.Component {
     super(props);
     this.state = {data: null, query: null};
   }
+  startViewDate = null;
+  endViewDate = null;
+  items = [];
+  itemRenderer = ({
+    item,
+    timelineContext,
+    itemContext,
+    getItemProps,
+    getResizeProps
+  }) => {
+    const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
+    const borderColor = itemContext.resizing ? "red" : item.color;
+    return (
+      <div
+        {...getItemProps({
+          style: {
+            backgroundColor: item.color,
+            color: "white",
+            borderColor,
+            borderStyle: "solid",
+            borderWidth: 1,
+            borderRadius: 4,
+            borderLeftWidth: itemContext.selected ? 3 : 1,
+            borderRightWidth: itemContext.selected ? 3 : 1
+          },
+          onMouseDown: () => {
+            console.log("on item click", item);
+          }
+        })}
+      >
+        {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
+
+        <div
+          style={{
+            height: itemContext.dimensions.height,
+            overflow: "hidden",
+            paddingLeft: 3,
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap"
+          }}
+        >
+          {itemContext.title}
+        </div>
+
+        {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
+      </div>
+    );
+  };
   async componentDidMount() {
     const params = new URLSearchParams(window.location.search);
     var query = params.get('q');
     document.title = "'" + query + "' Trials";
     var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,LastUpdatePostDate,CompletionDate&fmt=JSON&max_rnk=100';
     var data = await GetData(url);
-
+    var id = 1;
+    data.StudyFieldsResponse.StudyFields.forEach((trial) => {
+      if (trial.StartDate !== "" && trial.CompletionDate !== "" && trial.Phase !== null && trial.Phase[0] !== undefined) {
+        var StartDate = new Date(trial.StartDate);
+        var CompletionDate = new Date(trial.CompletionDate);
+        if (this.startViewDate == null || this.startViewDate > StartDate) this.startViewDate = StartDate;
+        if (this.endViewDate == null || this.endViewDate < CompletionDate) this.endViewDate = CompletionDate;
+        var phaseStr = trial.Phase[0] !== null ? trial.Phase[0].toString() : "";
+        var phase = phaseStr.substring(phaseStr.length - 1);
+        var completed = trial.OverallStatus == "Completed";
+        var unknown = trial.OverallStatus == "Unknown status";
+        var terminated = trial.OverallStatus == "Terminated";
+        var color = "green";
+        if (completed) { color = "blue" } 
+        else if (unknown) { color = "black"}
+        else if (terminated) {color = "red"}
+        
+        var trialData = {
+          id: id,
+          group: Number(phase),
+          title: trial.LeadSponsorName + ": " + trial.InterventionName[0] + " - " + trial.BriefTitle,
+          start_time: moment(StartDate),
+          end_time: moment(CompletionDate),
+          color: color
+        }
+        this.items.push(trialData);
+      }
+      id = id + 1;
+    });
     this.setState({data: data, query: query});
   }
 
   render() {
-    const groups = [{ id: 1, title: 'group 1' }, { id: 2, title: 'group 2' }]
- 
-const items = [
-  {
-    id: 1,
-    group: 1,
-    title: 'item 1',
-    start_time: moment(),
-    end_time: moment().add(1, 'hour')
-  },
-  {
-    id: 2,
-    group: 2,
-    title: 'item 2',
-    start_time: moment().add(-0.5, 'hour'),
-    end_time: moment().add(0.5, 'hour')
-  },
-  {
-    id: 3,
-    group: 1,
-    title: 'item 3',
-    start_time: moment().add(2, 'hour'),
-    end_time: moment().add(3, 'hour')
-  }
-]
-    return (
+    
+    const groups = [{ id: 1, title: 'Phase 1' }, { id: 2, title: 'Phase 2' }, { id: 3, title: 'Phase 3' }]
+    return (this.startViewDate !== null ?
       <>
-        <h1>{"'" + this.state.query + "' Trials"}</h1>
+        <h1 key='title'>{"'" + this.state.query + "' Trials"}</h1>
+
+        <Timeline stackItems
+          groups={groups}
+          items={this.items}
+          defaultTimeStart={moment(this.startViewDate)}
+          defaultTimeEnd={moment(new Date())}
+        />
 
         {this.state.data !== null ? this.state.data.StudyFieldsResponse.StudyFields.map((study)=>
         {
-          if (study.OverallStatus != "Completed" && study.OverallStatus != "Terminated" && study.OverallStatus != "Unknown status"){
           return <><div key={study.NCTId[0]}>
 
             <div><span>{study.LeadSponsorName}</span>: <span>{study.InterventionName[0]}</span></div>
@@ -65,20 +124,10 @@ const items = [
             <div><a href={'https://beta.clinicaltrials.gov/study/'+study.NCTId[0]}>{study.NCTId[0]}</a> : <span>{study.BriefTitle}</span></div>
             <div>&nbsp;</div>
             </div></>
-          }
-          else
-          {
-            return false;
-          }
         })
         : false}  
-            <Timeline
-      groups={groups}
-      items={items}
-      defaultTimeStart={moment().add(-12, 'hour')}
-      defaultTimeEnd={moment().add(12, 'hour')}
-    />
-      </>
+           
+      </> : false 
     );
   }
 }
