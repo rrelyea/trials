@@ -128,8 +128,8 @@ class Trials extends React.Component {
             var phaseStr = trial.phaseStr;
             var phaseHeader = null;
             if (phaseStr != this.lastPhase) {
-              phaseHeader = <h2>{trial.Phase[0]}</h2>;
-              if (phaseStr == "0X") phaseHeader = <h2>Other</h2>;
+              phaseHeader = <h2 className='phase'>{trial.Phase[0]}</h2>;
+              if (phaseStr == "0X") phaseHeader = <h2 className='phase'>Other</h2>;
             } 
             this.lastPhase = phaseStr;
             var status = trial.OverallStatus;
