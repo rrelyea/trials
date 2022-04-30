@@ -21,33 +21,67 @@ class Trials extends React.Component {
     const params = new URLSearchParams(window.location.search);
     var query = params.get('q');
     document.title = "'" + query + "' Trials";
-    var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,CompletionDate&fmt=JSON&max_rnk=100';
+    var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&max_rnk=100';
     var data = await GetData(url);
     var trials = {};
     data.StudyFieldsResponse.StudyFields.forEach((trial) => {
       if (trial.StartDate !== "" && trial.CompletionDate !== "" ) {
         var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
 
-        var CompletionDate = new Date(trial.CompletionDate);
-        var phaseStr = "";
-        var phase = "9";
-        if (trial.phase !== null) {
-          phaseStr = (trial.Phase[0] !== null && trial.Phase[0] !== undefined) ? trial.Phase[0].toString() : "";
-          phase = phaseStr.substring(phaseStr.length - 1);
-          if (phase == "e") phase = "0";
+        var CompletionDate = null
+        if (trial.CompletionDate.length != 0) {
+          CompletionDate = trial.CompletionDate;
+        } else if (trial.PrimaryCompletionDate.length != 0) {
+          CompletionDate = trial.PrimaryCompletionDate;
+        } else if (trial.LastUpdatePostDate.length != 0) {
+          CompletionDate = trial.LastUpdatePostDate;
         }
+        trial.endDate = CompletionDate;
+
+        var phaseStr = "";
+        if (trial.Phase[0] !== null) {
+          switch (trial.Phase[0]) {
+            case 'Phase 1':
+              phaseStr = "1X";
+              break;
+            case 'Early Phase 1':
+              phaseStr = "1A";
+              break;
+            case 'Phase 2':
+              phaseStr = "2X";
+              break;
+            case 'Phase 3':
+              phaseStr = "3X";
+              break;
+            case 'Phase 4':
+              phaseStr = "4X";
+              break;
+            case 'Not Applicable':
+              phaseStr = "0N";
+              break;
+            default:
+              phaseStr = "0X";
+              break;
+          }
+          trial.phaseStr = phaseStr;
+        }
+
         var completed = trial.OverallStatus == "Completed";
         var unknown = trial.OverallStatus == "Unknown status";
         var terminated = trial.OverallStatus == "Terminated";
+        var suspended = trial.OverallStatus == "Suspended";
+        var withdrawn = trial.OverallStatus == "Withdrawn";
 
         var status = "active";
         if (completed) { status = "completed" } 
         else if (unknown) { status = "unknown"}
         else if (terminated) {status = "terminated"}
+        else if (withdrawn) {status = "withdrawn"}
+        else if (suspended) {status = "suspended"}
         trial.status = status;
 
         var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-        var key = phase +"-"+ datestring + trial.LeadSponsorName;
+        var key = phaseStr +"-"+ datestring + trial.LeadSponsorName;
         trial.key = key;
         trials[key] = trial;
 
@@ -87,23 +121,27 @@ class Trials extends React.Component {
   render() {
     this.lastPhase = null;
     return <>
-        <h1 key='title'>{"'" + this.state.query + "' Trials"}</h1>
+        {this.state.query !== null ? <h1 key='title'>{"'" + this.state.query + "' Trials"}</h1> : false }
 
         {this.sortedTrials !== null ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
           {
-            var phase = trial.Phase[0];
+            var phaseStr = trial.phaseStr;
             var phaseHeader = null;
-            if (phase != this.lastPhase) phaseHeader = <h2>{phase}</h2>;
-            this.lastPhase = phase;
+            if (phaseStr != this.lastPhase) {
+              phaseHeader = <h2>{trial.Phase[0]}</h2>;
+              if (phaseStr == "0X") phaseHeader = <h2>Other</h2>;
+            } 
+            this.lastPhase = phaseStr;
             var status = trial.OverallStatus;
-            if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.CompletionDate).getFullYear();
+            if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
             if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
 
             return <>
               {phaseHeader}
               <div key={trial.NCTId[0]} className={trial.status+" trial"}>
-                <div className='sponsor'><span>{trial.InterventionName[0]}</span><span> ({trial.LeadSponsorName})</span></div>
                 <div className='status'>{status}</div>
+                <div className='interventionDiv'><span className='intervention'>{trial.InterventionName[0]}</span></div>
+                <div className='interventionDiv'><span className='sponsor'> ({trial.LeadSponsorName})</span></div>
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
           })

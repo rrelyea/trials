@@ -53,14 +53,29 @@
 .terminated {
   background-color: red;
 }
+.suspended {
+  background-color: orange;
+  color: black
+}
 .unknown {
   background-color: black;
 }
+.withdrawn {
+  background-color: darkslategrey;
+}
+.intervention {
+  font-weight: bold;
+}
 .sponsor {
+
+}
+.interventionDiv {
   float: left;
 }
 .status {
   float: right;
+  background-color: white;
+  color: black;
   font-size: calc(3px + vmin);
 }
 .title {
