@@ -17,118 +17,101 @@ class Trials extends React.Component {
   startViewDate = null;
   endViewDate = null;
   items = [];
-  itemRenderer = ({
-    item,
-    timelineContext,
-    itemContext,
-    getItemProps,
-    getResizeProps
-  }) => {
-    const { left: leftResizeProps, right: rightResizeProps } = getResizeProps();
-    const borderColor = itemContext.resizing ? "red" : item.color;
-    return (
-      <div
-        {...getItemProps({
-          style: {
-            backgroundColor: item.color,
-            color: "white",
-            borderColor,
-            borderStyle: "solid",
-            borderWidth: 1,
-            borderRadius: 4,
-            borderLeftWidth: itemContext.selected ? 3 : 1,
-            borderRightWidth: itemContext.selected ? 3 : 1
-          },
-          onMouseDown: () => {
-            console.log("on item click", item);
-          }
-        })}
-      >
-        {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : null}
-
-        <div
-          style={{
-            height: itemContext.dimensions.height,
-            overflow: "hidden",
-            paddingLeft: 3,
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
-          }}
-        >
-          {itemContext.title}
-        </div>
-
-        {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : null}
-      </div>
-    );
-  };
+  sortedTrials = null;
+  lastPhase = null;
   async componentDidMount() {
     const params = new URLSearchParams(window.location.search);
     var query = params.get('q');
     document.title = "'" + query + "' Trials";
-    var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,LastUpdatePostDate,CompletionDate&fmt=JSON&max_rnk=100';
+    var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,CompletionDate&fmt=JSON&max_rnk=100';
     var data = await GetData(url);
-    var id = 1;
+    var trials = {};
     data.StudyFieldsResponse.StudyFields.forEach((trial) => {
-      if (trial.StartDate !== "" && trial.CompletionDate !== "" && trial.Phase !== null && trial.Phase[0] !== undefined) {
-        var StartDate = new Date(trial.StartDate);
+      if (trial.StartDate !== "" && trial.CompletionDate !== "" ) {
+        var StartDate = null;
+        if (trial.StartDate[0] !== "") {
+          StartDate = new Date(trial.StartDate[0]);
+        } else if (trial.StudyFirstPostDate !== "") {
+          StartDate = new Date(trial.StudyFirstPostDate[0]);
+        }
+
         var CompletionDate = new Date(trial.CompletionDate);
         if (this.startViewDate == null || this.startViewDate > StartDate) this.startViewDate = StartDate;
         if (this.endViewDate == null || this.endViewDate < CompletionDate) this.endViewDate = CompletionDate;
-        var phaseStr = trial.Phase[0] !== null ? trial.Phase[0].toString() : "";
-        var phase = phaseStr.substring(phaseStr.length - 1);
+        var phaseStr = "";
+        var phase = "9";
+        if (trial.phase !== null) {
+          phaseStr = (trial.Phase[0] !== null && trial.Phase[0] !== undefined) ? trial.Phase[0].toString() : "";
+          phase = phaseStr.substring(phaseStr.length - 1);
+        }
         var completed = trial.OverallStatus == "Completed";
         var unknown = trial.OverallStatus == "Unknown status";
         var terminated = trial.OverallStatus == "Terminated";
-        var color = "green";
-        if (completed) { color = "blue" } 
-        else if (unknown) { color = "black"}
-        else if (terminated) {color = "red"}
-        
-        var trialData = {
-          id: id,
-          group: Number(phase),
-          title: trial.LeadSponsorName + ": " + trial.InterventionName[0] + " - " + trial.BriefTitle,
-          start_time: moment(StartDate),
-          end_time: moment(CompletionDate),
-          color: color
-        }
-        this.items.push(trialData);
+
+        var status = "active";
+        if (completed) { status = "completed" } 
+        else if (unknown) { status = "unknown"}
+        else if (terminated) {status = "terminated"}
+        trial.status = status;
+        var datestring = StartDate !== null ? StartDate.getFullYear() + StartDate.getMonth() + StartDate.getDay() : "        ";
+        var key = phase + datestring + trial.LeadSponsorName;
+        trials[key] = trial;
+
       }
-      id = id + 1;
     });
-    this.setState({data: data, query: query});
+
+    function sortKeys(obj_1) {
+      var key = Object.keys(obj_1)
+      .sort(function order(key1, key2) {
+          if (key1 < key2) return -1;
+          else if (key1 > key2) return +1;
+          else return 0;
+      }); 
+        
+      // Taking the object in 'temp' object
+      // and deleting the original object.
+      var temp = {};
+        
+      for (var i = 0; i < key.length; i++) {
+          temp[key[i]] = obj_1[key[i]];
+          delete obj_1[key[i]];
+      } 
+
+      // Copying the object from 'temp' to 
+      // 'original object'.
+      for (var i = 0; i < key.length; i++) {
+          obj_1[key[i]] = temp[key[i]];
+      } 
+      return obj_1;
+  }
+
+    this.sortedTrials = sortKeys(trials);
+    this.setState({sortedTrials: this.sortedTrials, query: query});
   }
 
   render() {
-    
-    const groups = [{ id: 1, title: 'Phase 1' }, { id: 2, title: 'Phase 2' }, { id: 3, title: 'Phase 3' }]
-    return (this.startViewDate !== null ?
-      <>
+    this.lastPhase = null;
+    return <>
         <h1 key='title'>{"'" + this.state.query + "' Trials"}</h1>
 
-        <Timeline stackItems
-          groups={groups}
-          items={this.items}
-          defaultTimeStart={moment(this.startViewDate)}
-          defaultTimeEnd={moment(new Date())}
-        />
-
-        {this.state.data !== null ? this.state.data.StudyFieldsResponse.StudyFields.map((study)=>
-        {
-          return <><div key={study.NCTId[0]}>
-
-            <div><span>{study.LeadSponsorName}</span>: <span>{study.InterventionName[0]}</span></div>
-            <span>{study.Phase[0]}</span> - <span>{study.OverallStatus}</span> - <span>{study.WhyStopped}</span><br/>
-            <span>Start: {study.StartDate}</span> - <span>FirstPost: {study.StudyFirstPostDate}</span> - <span>LastUpdate: {study.LastUpdatePostDate}</span> - <span>CompletionDate: {study.CompletionDate}</span>
-            <div><a href={'https://beta.clinicaltrials.gov/study/'+study.NCTId[0]}>{study.NCTId[0]}</a> : <span>{study.BriefTitle}</span></div>
-            <div>&nbsp;</div>
-            </div></>
-        })
+        {this.sortedTrials !== null ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
+          {
+            var phase = trial.Phase[0];
+            var phaseHeader = null;
+            if (phase != this.lastPhase) phaseHeader = <h2>{phase}</h2>;
+            this.lastPhase = phase;
+            return <>
+              {phaseHeader}
+              <div key={trial.NCTId[0]} className={trial.status+" trial"}>
+                <div><span>{trial.LeadSponsorName}</span>: <span>{trial.InterventionName[0]}</span></div>
+                <div><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
+                <span>{phase}</span>  <span>{trial.OverallStatus}</span>  <span>{trial.WhyStopped}</span><br/>
+                <span>Start: {trial.StartDate}</span> - <span>FirstPost: {trial.StudyFirstPostDate}</span> - <span>LastUpdate: {trial.LastUpdatePostDate}</span> - <span>CompletionDate: {trial.CompletionDate}</span>
+                <div>&nbsp;</div>
+              </div></>
+          })
         : false}  
-           
-      </> : false 
-    );
+      </>;
   }
 }
 
