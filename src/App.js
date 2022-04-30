@@ -58,6 +58,7 @@ class Trials extends React.Component {
     function sortKeys(obj_1) {
       var key = Object.keys(obj_1)
       .sort(function order(key1, key2) {
+          // sort in reverse order
           if (key1 < key2) return +1;
           else if (key1 > key2) return -1;
           else return 0;
@@ -98,9 +99,9 @@ class Trials extends React.Component {
             return <>
               {phaseHeader}
               <div key={trial.NCTId[0]} className={trial.status+" trial"}>
-                <div><span>{trial.LeadSponsorName}</span>: <span>{trial.InterventionName[0]}</span></div>
-                <div><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
-                <span>{phase}</span>  <span>{trial.OverallStatus}</span>  <span>{trial.WhyStopped}</span><br/>
+                <div className='sponsor'><span>{trial.InterventionName[0]}</span><span> ({trial.LeadSponsorName})</span></div>
+                <div className='status'>{trial.OverallStatus}</div>
+                <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
           })
         : false}  
