@@ -138,10 +138,10 @@ class Trials extends React.Component {
 
             return <>
               {phaseHeader}
-              <div key={trial.NCTId[0]} className={trial.status+" trial"}>
-                <div className='status'>{status}</div>
-                <div className='interventionDiv'><span className='intervention'>{trial.InterventionName[0]}</span></div>
-                <div className='interventionDiv'><span className='sponsor'> ({trial.LeadSponsorName})</span></div>
+              <div key={trial.NCTId[0]} className="trial">
+                <div className={'status '+trial.status}>{status}</div>
+                <div className='interventionDiv intervention'><span>{trial.InterventionName[0]}</span></div>
+                <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
           })

@@ -39,6 +39,7 @@
 
 .trial {
   color: white;
+  background-color: black;
   border-color: white;
   border-style: solid;
   border-width: 2px;
@@ -67,15 +68,13 @@
   font-weight: bold;
 }
 .sponsor {
-
+  margin-left: 5px;
 }
 .interventionDiv {
   float: left;
 }
 .status {
   float: right;
-  background-color: white;
-  color: black;
   font-size: calc(3px + vmin);
 }
 .title {
