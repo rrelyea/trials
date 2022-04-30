@@ -61,6 +61,7 @@
 }
 .status {
   float: right;
+  font-size: calc(3px + vmin);
 }
 .title {
   clear: both;

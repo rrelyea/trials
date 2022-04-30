@@ -14,8 +14,6 @@ class Trials extends React.Component {
     super(props);
     this.state = {data: null, query: null};
   }
-  startViewDate = null;
-  endViewDate = null;
   items = [];
   sortedTrials = null;
   lastPhase = null;
@@ -28,7 +26,7 @@ class Trials extends React.Component {
     var trials = {};
     data.StudyFieldsResponse.StudyFields.forEach((trial) => {
       if (trial.StartDate !== "" && trial.CompletionDate !== "" ) {
-        var LastUpdatePostDate = LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
+        var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
 
         var CompletionDate = new Date(trial.CompletionDate);
         var phaseStr = "";
@@ -47,6 +45,7 @@ class Trials extends React.Component {
         else if (unknown) { status = "unknown"}
         else if (terminated) {status = "terminated"}
         trial.status = status;
+
         var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
         var key = phase +"-"+ datestring + trial.LeadSponsorName;
         trial.key = key;
@@ -96,11 +95,15 @@ class Trials extends React.Component {
             var phaseHeader = null;
             if (phase != this.lastPhase) phaseHeader = <h2>{phase}</h2>;
             this.lastPhase = phase;
+            var status = trial.OverallStatus;
+            if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.CompletionDate).getFullYear();
+            if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
+
             return <>
               {phaseHeader}
               <div key={trial.NCTId[0]} className={trial.status+" trial"}>
                 <div className='sponsor'><span>{trial.InterventionName[0]}</span><span> ({trial.LeadSponsorName})</span></div>
-                <div className='status'>{trial.OverallStatus}</div>
+                <div className='status'>{status}</div>
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
           })
