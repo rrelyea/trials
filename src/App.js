@@ -12,81 +12,86 @@ async function GetData(url) {
 class Trials extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {data: null, query: null};
+    this.state = {data: null, query: null, trialCount: 0};
   }
   items = [];
   sortedTrials = null;
   lastPhase = null;
   async componentDidMount() {
-    const params = new URLSearchParams(window.location.search);
-    var query = params.get('q');
+  }
+  async getData() {
+    var query = this.props.query;
+    if (query == this.state.query) return;
     document.title = "'" + query + "' Trials";
-    var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&max_rnk=100';
+    var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&max_rnk=999';
     var data = await GetData(url);
     var trials = {};
-    data.StudyFieldsResponse.StudyFields.forEach((trial) => {
-      if (trial.StartDate !== "" && trial.CompletionDate !== "" ) {
-        var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
+    var trialCount = data.StudyFieldsResponse.NStudiesFound;
+    if ('StudyFields' in data.StudyFieldsResponse) {
+      data.StudyFieldsResponse.StudyFields.forEach((trial) => {
+        if (trial.StartDate !== "" && trial.CompletionDate !== "" ) {
+          var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
 
-        var CompletionDate = null
-        if (trial.CompletionDate.length != 0) {
-          CompletionDate = trial.CompletionDate;
-        } else if (trial.PrimaryCompletionDate.length != 0) {
-          CompletionDate = trial.PrimaryCompletionDate;
-        } else if (trial.LastUpdatePostDate.length != 0) {
-          CompletionDate = trial.LastUpdatePostDate;
-        }
-        trial.endDate = CompletionDate;
-
-        var phaseStr = "";
-        if (trial.Phase[0] !== null) {
-          switch (trial.Phase[0]) {
-            case 'Phase 1':
-              phaseStr = "1X";
-              break;
-            case 'Early Phase 1':
-              phaseStr = "1A";
-              break;
-            case 'Phase 2':
-              phaseStr = "2X";
-              break;
-            case 'Phase 3':
-              phaseStr = "3X";
-              break;
-            case 'Phase 4':
-              phaseStr = "4X";
-              break;
-            case 'Not Applicable':
-              phaseStr = "0N";
-              break;
-            default:
-              phaseStr = "0X";
-              break;
+          var CompletionDate = null
+          if (trial.CompletionDate.length != 0) {
+            CompletionDate = trial.CompletionDate;
+          } else if (trial.PrimaryCompletionDate.length != 0) {
+            CompletionDate = trial.PrimaryCompletionDate;
+          } else if (trial.LastUpdatePostDate.length != 0) {
+            CompletionDate = trial.LastUpdatePostDate;
           }
-          trial.phaseStr = phaseStr;
+          trial.endDate = CompletionDate;
+
+          var phaseStr = "";
+          if (trial.Phase[0] !== null) {
+            switch (trial.Phase[0]) {
+              case 'Phase 1':
+                phaseStr = "1X";
+                break;
+              case 'Early Phase 1':
+                phaseStr = "1A";
+                break;
+              case 'Phase 2':
+                phaseStr = "2X";
+                break;
+              case 'Phase 3':
+                phaseStr = "3X";
+                break;
+              case 'Phase 4':
+                phaseStr = "4X";
+                break;
+              case 'Not Applicable':
+                phaseStr = "0N";
+                break;
+              default:
+                phaseStr = "0X";
+                break;
+            }
+            trial.phaseStr = phaseStr;
+          }
+
+          var completed = trial.OverallStatus == "Completed";
+          var unknown = trial.OverallStatus == "Unknown status";
+          var terminated = trial.OverallStatus == "Terminated";
+          var suspended = trial.OverallStatus == "Suspended";
+          var withdrawn = trial.OverallStatus == "Withdrawn";
+
+          var status = "active";
+          if (completed) { status = "completed" } 
+          else if (unknown) { status = "unknown"}
+          else if (terminated) {status = "terminated"}
+          else if (withdrawn) {status = "withdrawn"}
+          else if (suspended) {status = "suspended"}
+          trial.status = status;
+
+          var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
+          var key = phaseStr +"-"+ datestring + trial.LeadSponsorName;
+          trial.key = key;
+          trials[key] = trial;
+
         }
-
-        var completed = trial.OverallStatus == "Completed";
-        var unknown = trial.OverallStatus == "Unknown status";
-        var terminated = trial.OverallStatus == "Terminated";
-        var suspended = trial.OverallStatus == "Suspended";
-        var withdrawn = trial.OverallStatus == "Withdrawn";
-
-        var status = "active";
-        if (completed) { status = "completed" } 
-        else if (unknown) { status = "unknown"}
-        else if (terminated) {status = "terminated"}
-        else if (withdrawn) {status = "withdrawn"}
-        else if (suspended) {status = "suspended"}
-        trial.status = status;
-
-        var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-        var key = phaseStr +"-"+ datestring + trial.LeadSponsorName;
-        trial.key = key;
-        trials[key] = trial;
-
-      }
-    });
+      });
+    }
 
     function sortKeys(obj_1) {
       var key = Object.keys(obj_1)
@@ -115,15 +120,16 @@ class Trials extends React.Component {
   }
 
     this.sortedTrials = sortKeys(trials);
-    this.setState({sortedTrials: this.sortedTrials, query: query});
+    this.setState({sortedTrials: this.sortedTrials, query: query, trialCount: trialCount});
   }
 
   render() {
+    this.getData();
     this.lastPhase = null;
     return <>
-        {this.state.query !== null ? <h1 key='title'>{"'" + this.state.query + "' Trials"}</h1> : false }
+        {this.state.query !== null ? <h1 key='title'>{"'" + this.state.query + "' Trials (" + this.state.trialCount + ")"}</h1> : false }
 
-        {this.sortedTrials !== null ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
+        {this.sortedTrials !== null && Object.keys(this.sortedTrials).length > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
           {
             var phaseStr = trial.phaseStr;
             var phaseHeader = null;
@@ -145,16 +151,64 @@ class Trials extends React.Component {
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
           })
-        : false}  
+        : <div>no matching trials</div>}  
       </>;
   }
 }
 
-function App() {
-  return (
-    <div className="App">
-        <Trials />
-    </div>
-  );
+function Logo() {
+  return (<span>Trials Search: </span>);
+}
+
+class SearchBox extends React.Component {
+  get_value() {
+    var searchBox = document.getElementById('searchBox');
+    return searchBox.value;
+  }
+
+  render() {
+    return (<span><input type='text' id='searchBox' placeholder='search clinicaltrials.gov' defaultValue={this.props.query} onKeyDown={this.props.onKeyDown} /></span>);
+  }
+}
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {query: ''}
+  }
+  navigateTo = () => {
+    var searchBox = document.getElementById('searchBox');
+    this.setState({query: searchBox.value});
+    const params = new URLSearchParams(window.location.search);
+    params.set('q', searchBox.value);
+    if (searchBox.value == "")
+    {
+      params.delete('q');
+    }
+    var paramsString = params.toString();
+    window.history.replaceState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
+  }
+  componentDidMount() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var query = urlParams.has('q') ? urlParams.get('q') : '';
+    this.setState({query: query});
+  }
+  keyDown = (event) => {
+    if (event.keyCode === 13) {
+      this.navigateTo();
+    }
+  }
+  render() {
+    return (
+      <div className="App">
+          <Logo />
+          <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />
+          <input type='button' value='Search' onClick={this.navigateTo} />
+          {this.state.query !== "" ?
+          <Trials id="trials" query={this.state.query} /> :
+          false }
+      </div>
+    );
+  }
 }
 export default App;
