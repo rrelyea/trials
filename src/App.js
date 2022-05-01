@@ -29,67 +29,64 @@ class Trials extends React.Component {
     var trialCount = data.StudyFieldsResponse.NStudiesFound;
     if ('StudyFields' in data.StudyFieldsResponse) {
       data.StudyFieldsResponse.StudyFields.forEach((trial) => {
-        if (trial.StartDate !== "" && trial.CompletionDate !== "" ) {
-          var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
+        var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
 
-          var CompletionDate = null
-          if (trial.CompletionDate.length != 0) {
-            CompletionDate = trial.CompletionDate;
-          } else if (trial.PrimaryCompletionDate.length != 0) {
-            CompletionDate = trial.PrimaryCompletionDate;
-          } else if (trial.LastUpdatePostDate.length != 0) {
-            CompletionDate = trial.LastUpdatePostDate;
-          }
-          trial.endDate = CompletionDate;
-
-          var phaseStr = "";
-          if (trial.Phase[0] !== null) {
-            switch (trial.Phase[0]) {
-              case 'Phase 1':
-                phaseStr = "1X";
-                break;
-              case 'Early Phase 1':
-                phaseStr = "1A";
-                break;
-              case 'Phase 2':
-                phaseStr = "2X";
-                break;
-              case 'Phase 3':
-                phaseStr = "3X";
-                break;
-              case 'Phase 4':
-                phaseStr = "4X";
-                break;
-              case 'Not Applicable':
-                phaseStr = "0N";
-                break;
-              default:
-                phaseStr = "0X";
-                break;
-            }
-            trial.phaseStr = phaseStr;
-          }
-
-          var completed = trial.OverallStatus == "Completed";
-          var unknown = trial.OverallStatus == "Unknown status";
-          var terminated = trial.OverallStatus == "Terminated";
-          var suspended = trial.OverallStatus == "Suspended";
-          var withdrawn = trial.OverallStatus == "Withdrawn";
-
-          var status = "active";
-          if (completed) { status = "completed" } 
-          else if (unknown) { status = "unknown"}
-          else if (terminated) {status = "terminated"}
-          else if (withdrawn) {status = "withdrawn"}
-          else if (suspended) {status = "suspended"}
-          trial.status = status;
-
-          var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-          var key = phaseStr +"-"+ datestring + trial.LeadSponsorName;
-          trial.key = key;
-          trials[key] = trial;
-
+        var CompletionDate = null
+        if (trial.CompletionDate.length != 0) {
+          CompletionDate = trial.CompletionDate;
+        } else if (trial.PrimaryCompletionDate.length != 0) {
+          CompletionDate = trial.PrimaryCompletionDate;
+        } else if (trial.LastUpdatePostDate.length != 0) {
+          CompletionDate = trial.LastUpdatePostDate;
         }
+        trial.endDate = CompletionDate;
+
+        var phaseStr = "";
+        if (trial.Phase[0] !== null) {
+          switch (trial.Phase[0]) {
+            case 'Phase 1':
+              phaseStr = "1X";
+              break;
+            case 'Early Phase 1':
+              phaseStr = "1A";
+              break;
+            case 'Phase 2':
+              phaseStr = "2X";
+              break;
+            case 'Phase 3':
+              phaseStr = "3X";
+              break;
+            case 'Phase 4':
+              phaseStr = "4X";
+              break;
+            case 'Not Applicable':
+              phaseStr = "0N";
+              break;
+            default:
+              phaseStr = "0X";
+              break;
+          }
+          trial.phaseStr = phaseStr;
+        }
+
+        var completed = trial.OverallStatus == "Completed";
+        var unknown = trial.OverallStatus == "Unknown status";
+        var terminated = trial.OverallStatus == "Terminated";
+        var suspended = trial.OverallStatus == "Suspended";
+        var withdrawn = trial.OverallStatus == "Withdrawn";
+
+        var status = "active";
+        if (completed) { status = "completed" } 
+        else if (unknown) { status = "unknown"}
+        else if (terminated) {status = "terminated"}
+        else if (withdrawn) {status = "withdrawn"}
+        else if (suspended) {status = "suspended"}
+        trial.status = status;
+
+        var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
+        var key = phaseStr +"-"+ datestring + trial.LeadSponsorName;
+        trial.key = key;
+        trials[key] = trial;
       });
     }
 
@@ -127,7 +124,7 @@ class Trials extends React.Component {
     this.getData();
     this.lastPhase = null;
     return <>
-        {this.state.query !== null ? <h1 key='title'>{"'" + this.state.query + "' Trials (" + this.state.trialCount + ")"}</h1> : false }
+        {this.state.query !== null ? <h3 key='title'>{"(" + this.state.trialCount + ")"}</h3> : false }
 
         {this.sortedTrials !== null && Object.keys(this.sortedTrials).length > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
           {
