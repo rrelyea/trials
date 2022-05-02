@@ -21,14 +21,44 @@ class Trials extends React.Component {
   async componentDidMount() {
   }
   
+  sortKeys(obj_1) {
+      var key = Object.keys(obj_1)
+      .sort(function order(key1, key2) {
+          // sort in reverse order
+          if (key1 < key2) return +1;
+          else if (key1 > key2) return -1;
+          else return 0;
+      }); 
+        
+      // Taking the object in 'temp' object
+      // and deleting the original object.
+      var temp = {};
+        
+      for (var i = 0; i < key.length; i++) {
+          temp[key[i]] = obj_1[key[i]];
+          delete obj_1[key[i]];
+      } 
+
+      // Copying the object from 'temp' to 
+      // 'original object'.
+      for (var i = 0; i < key.length; i++) {
+          obj_1[key[i]] = temp[key[i]];
+      } 
+      return obj_1;
+  }
+
   async getData() {
     var query = this.props.query;
     if (query == this.state.query) return;
+
     document.title = "'" + query + "' Trials";
     var moreToGet = 1;
     var maxRank = 999;
     var minRank = 1;
     var trials = {};
+    this.sortedTrials = null;
+    this.setState({sortedTrials: this.sortedTrials, query: query, trialCount: trialCount});
+
 
     var pubmedUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&term=' + query;
     this.pubmedResults = await GetData(pubmedUrl);
@@ -99,7 +129,7 @@ class Trials extends React.Component {
           trials[key] = trial;
         });
       }
-      
+
       if (trialCount > maxRank && maxRank < 5000)
       {
         minRank = minRank + 999;
@@ -112,33 +142,7 @@ class Trials extends React.Component {
       }
     }
 
-    function sortKeys(obj_1) {
-      var key = Object.keys(obj_1)
-      .sort(function order(key1, key2) {
-          // sort in reverse order
-          if (key1 < key2) return +1;
-          else if (key1 > key2) return -1;
-          else return 0;
-      }); 
-        
-      // Taking the object in 'temp' object
-      // and deleting the original object.
-      var temp = {};
-        
-      for (var i = 0; i < key.length; i++) {
-          temp[key[i]] = obj_1[key[i]];
-          delete obj_1[key[i]];
-      } 
-
-      // Copying the object from 'temp' to 
-      // 'original object'.
-      for (var i = 0; i < key.length; i++) {
-          obj_1[key[i]] = temp[key[i]];
-      } 
-      return obj_1;
-  }
-
-    this.sortedTrials = sortKeys(trials);
+    this.sortedTrials = this.sortKeys(trials);
     this.setState({sortedTrials: this.sortedTrials, query: query, trialCount: trialCount});
   }
 
@@ -148,7 +152,7 @@ class Trials extends React.Component {
     var pubMedCount = this.pubmedResults !== null ? this.pubmedResults.esearchresult.count : 0;
     var tooManyWarning = this.state.trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
     return <>
-        {this.state.query !== null ? <h3 key='title'><span>{"Trials (" + this.state.trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
+        {this.state.sortedTrials !== null && this.state.query !== null ? <h3 key='title'><span>{"Trials (" + this.state.trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
 
         {this.sortedTrials !== null && Object.keys(this.sortedTrials).length > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
           {
@@ -172,7 +176,7 @@ class Trials extends React.Component {
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
           })
-        : <div>no matching trials</div>}  
+        : <h3>searching for trials...</h3>}  
       </>;
   }
 }
@@ -224,7 +228,7 @@ class App extends React.Component {
       <div className="App">
           <Logo />
           <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />
-          <input type='button' value='Search' onClick={this.navigateTo} />
+          <input type='button' value='Go' onClick={this.navigateTo} />
           {this.state.query !== "" ?
           <Trials id="trials" query={this.state.query} /> :
           false }
