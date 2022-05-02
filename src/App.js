@@ -152,7 +152,7 @@ class Trials extends React.Component {
     var pubMedCount = this.pubmedResults !== null ? this.pubmedResults.esearchresult.count : 0;
     var tooManyWarning = this.state.trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
     return <>
-        {this.state.sortedTrials !== null && this.state.query !== null ? <h3 key='title'><span>{"Trials (" + this.state.trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
+        {this.state.sortedTrials !== null && this.state.query !== null ? <h3 key='title'><span>{"ClinicalTrials.gov (" + this.state.trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
 
         {this.sortedTrials !== null && Object.keys(this.sortedTrials).length > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
           {
@@ -166,12 +166,19 @@ class Trials extends React.Component {
             var status = trial.OverallStatus;
             if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
             if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
+            var interventions = [];
 
+            var interventions = trial.InterventionName.filter((intervention, index)=> {
+               var compare = intervention.toLowerCase();
+               return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));
+            });
+            var interventions = interventions.join(', ');
+            
             return <>
               {phaseHeader}
               <div key={trial.NCTId[0]} className="trial">
                 <div className={'status '+trial.status}>{status}</div>
-                <div className='interventionDiv intervention'><span>{trial.InterventionName[0]}</span></div>
+                <div className='interventionDiv intervention'><span>{interventions}</span></div>
                 <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
               </div></>
