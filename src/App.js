@@ -64,7 +64,7 @@ class Trials extends React.Component {
     this.pubmedResults = await GetData(pubmedUrl);
 
     while (moreToGet > 0) {
-      var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&min_rnk='+minRank.toString()+'&max_rnk='+maxRank.toString();
+      var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,StudyType,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&min_rnk='+minRank.toString()+'&max_rnk='+maxRank.toString();
       var data = await GetData(url);
       var trialCount = data.StudyFieldsResponse.NStudiesFound;
       if ('StudyFields' in data.StudyFieldsResponse) {
@@ -83,6 +83,7 @@ class Trials extends React.Component {
 
           var phaseStr = "";
           var lastPhase = trial.Phase[trial.Phase.length-1];
+          trial.phaseGroup = lastPhase;
           if (lastPhase !== null) {
             switch (lastPhase) {
               case 'Phase 1':
@@ -104,7 +105,15 @@ class Trials extends React.Component {
                 phaseStr = "0N";
                 break;
               default:
-                phaseStr = "0X";
+                if (trial.StudyType == "Observational") {
+                  phaseStr = "0O";
+                  trial.phaseGroup = "Observational";
+                } else if (trial.StudyType == "Expanded Access") {
+                  phaseStr = "5X";
+                  trial.phaseGroup = "Expanded Access";
+                } else {
+                  phaseStr = "0X";
+                }
                 break;
             }
             trial.phaseStr = phaseStr;
@@ -160,8 +169,7 @@ class Trials extends React.Component {
             var phaseStr = trial.phaseStr;
             var phaseHeader = null;
             if (phaseStr != this.lastPhase) {
-              phaseHeader = <h2 className='phase'>{trial.Phase[trial.Phase.length-1]}</h2>;
-              if (phaseStr == "0X") phaseHeader = <h2 className='phase'>Other</h2>;
+              phaseHeader = <h2 className='phase'>{trial.phaseGroup}</h2>;
             } 
             this.lastPhase = phaseStr;
             var status = trial.OverallStatus;
@@ -173,7 +181,7 @@ class Trials extends React.Component {
                var compare = intervention.toLowerCase();
                return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));
             });
-            var interventions = interventions.join(', ');
+            interventions = interventions.join(', ');
             
             return <>
               {phaseHeader}
