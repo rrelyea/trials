@@ -216,6 +216,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {query: ''}
+    window.addEventListener('popstate', this.onBackButtonEvent);
   }
   navigateTo = () => {
     var searchBox = document.getElementById('searchBox');
@@ -227,7 +228,14 @@ class App extends React.Component {
       params.delete('q');
     }
     var paramsString = params.toString();
-    window.history.replaceState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
+    window.history.pushState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
+  }
+  onBackButtonEvent = () => {
+    var urlParams = new URLSearchParams(window.location.search);
+    var query = urlParams.has('q') ? urlParams.get('q') : '';
+    var searchBox = document.getElementById('searchBox');
+    searchBox.value = query;
+    this.setState({query: query});
   }
   componentDidMount() {
     var urlParams = new URLSearchParams(window.location.search);
