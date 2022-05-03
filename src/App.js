@@ -82,8 +82,9 @@ class Trials extends React.Component {
           trial.endDate = CompletionDate;
 
           var phaseStr = "";
-          if (trial.Phase[0] !== null) {
-            switch (trial.Phase[0]) {
+          var lastPhase = trial.Phase[trial.Phase.length-1];
+          if (lastPhase !== null) {
+            switch (lastPhase) {
               case 'Phase 1':
                 phaseStr = "1X";
                 break;
@@ -124,7 +125,7 @@ class Trials extends React.Component {
           trial.status = status;
 
           var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-          var key = phaseStr +"-"+ datestring + trial.LeadSponsorName;
+          var key = phaseStr +"-"+ datestring + trial.LeadSponsorName + trial.NCTId;
           trial.key = key;
           trials[key] = trial;
         });
@@ -159,7 +160,7 @@ class Trials extends React.Component {
             var phaseStr = trial.phaseStr;
             var phaseHeader = null;
             if (phaseStr != this.lastPhase) {
-              phaseHeader = <h2 className='phase'>{trial.Phase[0]}</h2>;
+              phaseHeader = <h2 className='phase'>{trial.Phase[trial.Phase.length-1]}</h2>;
               if (phaseStr == "0X") phaseHeader = <h2 className='phase'>Other</h2>;
             } 
             this.lastPhase = phaseStr;
