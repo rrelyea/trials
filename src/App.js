@@ -1,8 +1,5 @@
 import './App.css';
 import React from 'react';
-import Timeline from 'react-calendar-timeline';
-import 'react-calendar-timeline/lib/Timeline.css';
-import moment from 'moment';
 
 async function GetData(url) {
   return fetch(url)
@@ -225,14 +222,18 @@ class SearchBox extends React.Component {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {query: ''}
+    this.state = {query: '', queries: []}
     window.addEventListener('popstate', this.onBackButtonEvent);
   }
-  navigateTo = () => {
-    var searchBox = document.getElementById('searchBox');
-    this.setState({query: searchBox.value});
+  navigateTo = (query) => {
+    if (query === null) {
+      var searchBox = document.getElementById('searchBox');
+      query = searchBox.value;
+    }
+    this.setState({query: query});
     const params = new URLSearchParams(window.location.search);
-    params.set('q', searchBox.value);
+    params.set('q', query);
+    params.set('qs', this.state.queries);
     if (searchBox.value == "")
     {
       params.delete('q');
@@ -243,26 +244,45 @@ class App extends React.Component {
   onBackButtonEvent = () => {
     var urlParams = new URLSearchParams(window.location.search);
     var query = urlParams.has('q') ? urlParams.get('q') : '';
+    var queries = urlParams.has('qs') ? urlParams.get('qs').split(',') : [];
+    this.setSearchBoxValue(query);
+    this.setState({query: query, queries: queries});
+  }
+  setSearchBoxValue = (query) => {
     var searchBox = document.getElementById('searchBox');
     searchBox.value = query;
-    this.setState({query: query});
   }
   componentDidMount() {
     var urlParams = new URLSearchParams(window.location.search);
     var query = urlParams.has('q') ? urlParams.get('q') : '';
-    this.setState({query: query});
+    var queries = urlParams.has('qs') ? urlParams.get('qs').split(',') : [];
+    this.setState({query: query, queries: queries});
   }
   keyDown = (event) => {
     if (event.keyCode === 13) {
-      this.navigateTo();
+      this.navigateTo(null);
     }
   }
+  handleChange = (event) => {
+    this.setState({query:event.target.value});
+    this.setSearchBoxValue(event.target.value);
+  }
   render() {
+    var queryList = null;
+    if (this.state.queries.length > 0) {
+      queryList = <><select onChange={this.handleChange}>
+        <option key='0' value=''>Choose a Prebuilt Query</option>
+        { this.state.queries.map((q)=>{
+          return <option key={q} value={q}>{q}</option>;
+        })}
+      </select>&nbsp;</>
+    }
     return (
       <div className="App">
+          {queryList}
           <Logo />
           <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />
-          <input type='button' value='Go' onClick={this.navigateTo} />
+          <input type='button' value='Go' onClick={() => this.navigateTo(null)} />
           {this.state.query !== "" ?
           <Trials id="trials" query={this.state.query} /> :
           false }
