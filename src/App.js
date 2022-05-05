@@ -273,7 +273,12 @@ class App extends React.Component {
       queryList = <><select onChange={this.handleChange}>
         <option key='0' value=''>Choose a Prebuilt Query</option>
         { this.state.queries.map((q)=>{
-          return <option key={q} value={q}>{q}</option>;
+          var terms = q.split(':');
+          if (terms.length > 1) {
+            return <option key={q} value={terms[1]}>{terms[0]}</option>;
+          } else {
+            return <option key={q} value={q}>{q}</option>;
+          }
         })}
       </select>&nbsp;</>
     }
