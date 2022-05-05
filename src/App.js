@@ -93,10 +93,20 @@ class Trials extends React.Component {
                 phaseStr = "1A";
                 break;
               case 'Phase 2':
-                phaseStr = "2X";
+                if (trial.Phase[0] == 'Phase 1') {
+                  phaseStr = "2A";
+                  trial.phaseGroup = "Phase 1/2";
+                } else {
+                  phaseStr = "2X";
+                }
                 break;
               case 'Phase 3':
-                phaseStr = "3X";
+                if (trial.Phase[0] == 'Phase 2') {
+                  phaseStr = "3A";
+                  trial.phaseGroup = "Phase 2/3";
+                } else {
+                  phaseStr = "3X";
+                }
                 break;
               case 'Phase 4':
                 phaseStr = "4X";
