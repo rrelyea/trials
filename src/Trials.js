@@ -1,10 +1,13 @@
 import React from 'react';
+import { getPhaseInfo, sortKeys } from "./TrialUtilities.js";
 
 async function GetData(url) {
-    return fetch(url)
-    .then(response => response.json())
-  }
-  
+  return fetch(url)
+  .then(response => response.json())
+}
+
+
+
 class Trials extends React.Component {
     constructor(props) {
       super(props);
@@ -16,36 +19,10 @@ class Trials extends React.Component {
     pubmedResults = null;
     async componentDidMount() {
     }
-    
-    sortKeys(obj_1) {
-        var key = Object.keys(obj_1)
-        .sort(function order(key1, key2) {
-            // sort in reverse order
-            if (key1 < key2) return +1;
-            else if (key1 > key2) return -1;
-            else return 0;
-        }); 
-          
-        // Taking the object in 'temp' object
-        // and deleting the original object.
-        var temp = {};
-          
-        for (var i = 0; i < key.length; i++) {
-            temp[key[i]] = obj_1[key[i]];
-            delete obj_1[key[i]];
-        } 
-  
-        // Copying the object from 'temp' to 
-        // 'original object'.
-        for (var i = 0; i < key.length; i++) {
-            obj_1[key[i]] = temp[key[i]];
-        } 
-        return obj_1;
-    }
-  
+     
     async getData() {
       var query = this.props.query;
-      if (query == this.state.query) return;
+      if (query === this.state.query) return;
   
       document.title = "'" + query + "' Trials";
       var moreToGet = 1;
@@ -53,6 +30,7 @@ class Trials extends React.Component {
       var minRank = 1;
       var trials = {};
       this.sortedTrials = null;
+      var trialCount = 0;
       this.setState({sortedTrials: this.sortedTrials, query: query, trialCount: trialCount});
   
   
@@ -62,74 +40,27 @@ class Trials extends React.Component {
       while (moreToGet > 0) {
         var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,StudyType,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&min_rnk='+minRank.toString()+'&max_rnk='+maxRank.toString();
         var data = await GetData(url);
-        var trialCount = data.StudyFieldsResponse.NStudiesFound;
+        trialCount = data.StudyFieldsResponse.NStudiesFound;
         if ('StudyFields' in data.StudyFieldsResponse) {
           data.StudyFieldsResponse.StudyFields.forEach((trial) => {
             var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
   
             var CompletionDate = null
-            if (trial.CompletionDate.length != 0) {
+            if (trial.CompletionDate.length !== 0) {
               CompletionDate = trial.CompletionDate;
-            } else if (trial.PrimaryCompletionDate.length != 0) {
+            } else if (trial.PrimaryCompletionDate.length !== 0) {
               CompletionDate = trial.PrimaryCompletionDate;
-            } else if (trial.LastUpdatePostDate.length != 0) {
+            } else if (trial.LastUpdatePostDate.length !== 0) {
               CompletionDate = trial.LastUpdatePostDate;
             }
             trial.endDate = CompletionDate;
+            trial.phaseInfo = getPhaseInfo(trial.Phase[trial.Phase.length-1], trial.Phase[0], trial.StudyType);
   
-            var phaseStr = "";
-            var lastPhase = trial.Phase[trial.Phase.length-1];
-            trial.phaseGroup = lastPhase;
-            if (lastPhase !== null) {
-              switch (lastPhase) {
-                case 'Phase 1':
-                  phaseStr = "1X";
-                  break;
-                case 'Early Phase 1':
-                  phaseStr = "1A";
-                  break;
-                case 'Phase 2':
-                  if (trial.Phase[0] == 'Phase 1') {
-                    phaseStr = "2A";
-                    trial.phaseGroup = "Phase 1/2";
-                  } else {
-                    phaseStr = "2X";
-                  }
-                  break;
-                case 'Phase 3':
-                  if (trial.Phase[0] == 'Phase 2') {
-                    phaseStr = "3A";
-                    trial.phaseGroup = "Phase 2/3";
-                  } else {
-                    phaseStr = "3X";
-                  }
-                  break;
-                case 'Phase 4':
-                  phaseStr = "4X";
-                  break;
-                case 'Not Applicable':
-                  phaseStr = "0N";
-                  break;
-                default:
-                  if (trial.StudyType == "Observational") {
-                    phaseStr = "0O";
-                    trial.phaseGroup = "Observational";
-                  } else if (trial.StudyType == "Expanded Access") {
-                    phaseStr = "5X";
-                    trial.phaseGroup = "Expanded Access";
-                  } else {
-                    phaseStr = "0X";
-                  }
-                  break;
-              }
-              trial.phaseStr = phaseStr;
-            }
-  
-            var completed = trial.OverallStatus == "Completed";
-            var unknown = trial.OverallStatus == "Unknown status";
-            var terminated = trial.OverallStatus == "Terminated";
-            var suspended = trial.OverallStatus == "Suspended";
-            var withdrawn = trial.OverallStatus == "Withdrawn";
+            var completed = trial.OverallStatus === "Completed";
+            var unknown = trial.OverallStatus === "Unknown status";
+            var terminated = trial.OverallStatus === "Terminated";
+            var suspended = trial.OverallStatus === "Suspended";
+            var withdrawn = trial.OverallStatus === "Withdrawn";
   
             var status = "active";
             if (completed) { status = "completed" } 
@@ -140,7 +71,7 @@ class Trials extends React.Component {
             trial.status = status;
   
             var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-            var key = phaseStr +"-"+ datestring + trial.LeadSponsorName + trial.NCTId;
+            var key = trial.phaseInfo.order +"-"+ datestring + trial.LeadSponsorName + trial.NCTId;
             trial.key = key;
             trials[key] = trial;
           });
@@ -158,8 +89,8 @@ class Trials extends React.Component {
         }
       }
   
-      this.sortedTrials = this.sortKeys(trials);
-      this.setState({sortedTrials: this.sortedTrials, query: query, trialCount: trialCount});
+      this.sortedTrials = sortKeys(trials);
+      this.setState({query: query, trialCount: trialCount});
     }
   
     render() {
@@ -168,21 +99,18 @@ class Trials extends React.Component {
       var pubMedCount = this.pubmedResults !== null ? this.pubmedResults.esearchresult.count : 0;
       var tooManyWarning = this.state.trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
       return <>
-          {this.state.sortedTrials !== null && this.state.query !== null ? <h3 key='title'><span>{"ClinicalTrials.gov (" + this.state.trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
+          {this.sortedTrials !== null && this.state.query !== null ? <h3 key='title'><span>{"ClinicalTrials.gov (" + this.state.trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
   
           {this.sortedTrials !== null && Object.keys(this.sortedTrials).length > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
             {
-              var phaseStr = trial.phaseStr;
               var phaseHeader = null;
-              if (phaseStr != this.lastPhase) {
-                phaseHeader = <h2 className='phase'>{trial.phaseGroup}</h2>;
+              if (trial.phaseInfo.group !== this.lastPhase) {
+                phaseHeader = <h2 className='phase'>{trial.phaseInfo.group}</h2>;
               } 
-              this.lastPhase = phaseStr;
+              this.lastPhase = trial.phaseInfo.group;
               var status = trial.OverallStatus;
               if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
               if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
-              var interventions = [];
-  
               var interventions = trial.InterventionName.filter((intervention, index)=> {
                  var compare = intervention.toLowerCase();
                  return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));

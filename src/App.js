@@ -2,9 +2,6 @@ import './App.css';
 import React from 'react';
 import Trials from './Trials.js';
 
-
-
-
 function Logo() {
   return (<span>Search: </span>);
 }
