@@ -48,24 +48,24 @@ body {
   margin-left:20px;
   padding: 2px;
 }
-.active {
+.Active {
   background-color: green;
 }
-.completed {
+.Completed {
   background-color: blue;
 }
-.terminated {
+.Terminated {
   background-color: red;
 }
-.suspended {
+.Suspended {
   background-color: orange;
   color: black
 }
-.unknown {
+.Unknown {
   background-color: white;
   color: black;
 }
-.withdrawn {
+.Withdrawn {
   background-color: darkslategrey;
 }
 .intervention {

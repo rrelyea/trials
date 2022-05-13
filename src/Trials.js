@@ -17,9 +17,7 @@ class Trials extends React.Component {
     sortedTrials = null;
     lastPhase = null;
     pubmedResults = null;
-    async componentDidMount() {
-    }
-     
+
     async getData() {
       var query = this.props.query;
       if (query === this.state.query) return;
@@ -55,20 +53,21 @@ class Trials extends React.Component {
             }
             trial.endDate = CompletionDate;
             trial.phaseInfo = getPhaseInfo(trial.Phase[trial.Phase.length-1], trial.Phase[0], trial.StudyType);
-  
-            var completed = trial.OverallStatus === "Completed";
-            var unknown = trial.OverallStatus === "Unknown status";
-            var terminated = trial.OverallStatus === "Terminated";
-            var suspended = trial.OverallStatus === "Suspended";
-            var withdrawn = trial.OverallStatus === "Withdrawn";
-  
-            var status = "active";
-            if (completed) { status = "completed" } 
-            else if (unknown) { status = "unknown"}
-            else if (terminated) {status = "terminated"}
-            else if (withdrawn) {status = "withdrawn"}
-            else if (suspended) {status = "suspended"}
-            trial.status = status;
+
+            switch (trial.OverallStatus.toString()) 
+            {
+                case "Enrolling by invitation":
+                case "Recruiting":
+                case "Active, not recruiting":
+                    trial.OverallStatusStyle = "Active";
+                    break;
+                case "Unknown status":
+                    trial.OverallStatusStyle = "Unknown";
+                    break;
+                default:
+                    trial.OverallStatusStyle = trial.OverallStatus;
+                    break;
+            }
   
             var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
             var key = trial.phaseInfo.order +"-"+ datestring + trial.LeadSponsorName + trial.NCTId;
@@ -120,7 +119,7 @@ class Trials extends React.Component {
               return <>
                 {phaseHeader}
                 <div key={trial.NCTId[0]} className="trial">
-                  <div className={'status '+trial.status}>{status}</div>
+                  <div className={'status '+trial.OverallStatusStyle}>{status}</div>
                   <div className='interventionDiv intervention'><span>{interventions}</span></div>
                   <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
