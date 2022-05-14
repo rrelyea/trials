@@ -1,13 +1,6 @@
 import React from 'react';
 import { fetchTrialsData, fetchPubMedData, sortKeys, getInterventions } from "./TrialUtilities.js";
 
-function setKey(trial) {
-  var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
-  var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-  var key = trial.phaseInfo.order +"-"+ trial.LeadSponsorName + "-" + datestring +  trial.NCTId;
-  trial.key = key;
-}
-
 class Trials extends React.Component {
     constructor(props) {
       super(props);
@@ -28,21 +21,20 @@ class Trials extends React.Component {
         name: "Sponsor",
         groupBy: "LeadSponsorName".split('.'),
         compare: function (trialA, trialB) { 
-          return trialA.LeadSponsorName < trialB.LeadSponsorName ? -1 : 1
-          || trialA.phaseInfo.order > trialB.phaseInfo.order ? -1 : 1
-          || new Date(trialA.LastUpdatePostDate) - new Date(trialB.LastUpdatePostDate)
+          return (trialA.LeadSponsorName < trialB.LeadSponsorName ? -1 : 1)
+          || (trialA.phaseInfo.group > trialB.phaseInfo.group ? -1 : 1)
+          || (new Date(trialA.LastUpdatePostDate) - new Date(trialB.LastUpdatePostDate))
         }
       }
     ];
     activeGrouping = 0;
     lastGroup = null;
 
-
     async getData() {
       var query = this.props.query;
       this.pubmedResults = await fetchPubMedData(query);
       this.trials = null;
-      var trials = await fetchTrialsData(query, setKey);
+      var trials = await fetchTrialsData(query);
       this.trials = trials.sort(this.groupings[this.activeGrouping].compare);
       this.setState({query: query});
     }
@@ -88,7 +80,7 @@ class Trials extends React.Component {
                 <div key={trial.NCTId[0]} className="trial">
                   <div className={'status '+trial.OverallStatusStyle}>{this.activeGrouping == 1 ? trial.phaseInfo.group+"-":false}{status}</div>
                   <div className='interventionDiv intervention'><span>{getInterventions(trial)}</span></div>
-                  <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
+                  { this.activeGrouping == 0 ? <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
                 </div></>
             })

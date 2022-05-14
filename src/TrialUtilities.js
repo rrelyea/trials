@@ -3,12 +3,12 @@
         .then(response => response.json())
     }
 
-    export async function fetchPubMedData(query, setKey) {
+    export async function fetchPubMedData(query) {
         var pubmedUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&term=' + query;
         return await GetData(pubmedUrl);
     }
 
-    export async function fetchTrialsData(query, setKey) {
+    export async function fetchTrialsData(query) {
       document.title = "'" + query + "' Trials";
       var moreToGet = 1;
       var maxRank = 999;
@@ -48,7 +48,6 @@
                     break;
             }
   
-            setKey(trial);
             trials.push(trial);
           });
         }
