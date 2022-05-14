@@ -28,7 +28,8 @@ class Trials extends React.Component {
         name: "Sponsor",
         groupBy: "LeadSponsorName".split('.'),
         compare: function (trialA, trialB) { 
-          return trialA.LeadSponsorName < trialB.LeadSponsorName ? -1 : 1   
+          return trialA.LeadSponsorName < trialB.LeadSponsorName ? -1 : 1
+          || trialA.phaseInfo.order > trialB.phaseInfo.order ? -1 : 1
           || new Date(trialA.LastUpdatePostDate) - new Date(trialB.LastUpdatePostDate)
         }
       }
@@ -45,6 +46,7 @@ class Trials extends React.Component {
       this.trials = trials.sort(this.groupings[this.activeGrouping].compare);
       this.setState({query: query});
     }
+
     chooseGrouping = (e) => 
     {
         this.activeGrouping = Number(e.target.selectedIndex);
@@ -84,7 +86,7 @@ class Trials extends React.Component {
               return <>
                 {groupingHeader}
                 <div key={trial.NCTId[0]} className="trial">
-                  <div className={'status '+trial.OverallStatusStyle}>{status}</div>
+                  <div className={'status '+trial.OverallStatusStyle}>{this.activeGrouping == 1 ? trial.phaseInfo.group+"-":false}{status}</div>
                   <div className='interventionDiv intervention'><span>{getInterventions(trial)}</span></div>
                   <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
