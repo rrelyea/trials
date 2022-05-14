@@ -1,9 +1,11 @@
 import React from 'react';
-import { fetchTrialsData, fetchPubMedData, getPhaseInfo, sortKeys } from "./TrialUtilities.js";
+import { fetchTrialsData, fetchPubMedData, sortKeys, getInterventions } from "./TrialUtilities.js";
 
-async function GetData(url) {
-  return fetch(url)
-  .then(response => response.json())
+function setKey(trial) {
+  var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
+  var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
+  var key = trial.phaseInfo.order +"-"+ trial.LeadSponsorName + "-" + datestring +  trial.NCTId;
+  trial.key = key;
 }
 
 class Trials extends React.Component {
@@ -13,25 +15,22 @@ class Trials extends React.Component {
     }
     items = [];
     sortedTrials = null;
-    lastPhase = null;
+    lastGroup = null;
     pubmedResults = null;
+    group = "phaseInfo.group".split('.');
 
     async getData() {
       var query = this.props.query;
-      if (query === this.state.query) return;
-
       this.pubmedResults = await fetchPubMedData(query);
       this.sortedTrials = null;
-      this.setState({query: query, trialCount: 0});
-      var trials = await fetchTrialsData(query);
-  
-      this.sortedTrials = sortKeys(trials);
-      this.setState({});
+      var trials = await fetchTrialsData(query, setKey);
+      this.sortedTrials = sortKeys(trials, true);
+      this.setState({query: query});
     }
   
     render() {
       this.getData();
-      this.lastPhase = null;
+      this.lastGroup = null;
       var pubMedCount = this.pubmedResults !== null ? this.pubmedResults.esearchresult.count : 0;
       var tooManyWarning = this.state.trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
       var trialCount = this.sortedTrials != null ? Object.keys(this.sortedTrials).length : 0;
@@ -42,25 +41,26 @@ class Trials extends React.Component {
           {this.sortedTrials !== null && trialCount > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
             {
               var phaseHeader = null;
-              if (trial.phaseInfo.group !== this.lastPhase) {
-                phaseHeader = <h2 className='phase'>{trial.phaseInfo.group}</h2>;
+
+              var groupingValue = trial;
+              for (var i = 0; i < this.group.length; i++) {
+                groupingValue = groupingValue[this.group[i]];
+              }
+              groupingValue = groupingValue.toString();
+              if (groupingValue != this.lastGroup) {
+                phaseHeader = <h2 className='phase'>{groupingValue}</h2>;
               } 
-              this.lastPhase = trial.phaseInfo.group;
+              this.lastGroup = groupingValue;
               var status = trial.OverallStatus;
               if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
               if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
-              var interventions = trial.InterventionName.filter((intervention, index)=> {
-                 var compare = intervention.toLowerCase();
-                 return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));
-              });
-              interventions = interventions.join(', ');
               
               return <>
                 {phaseHeader}
                 <div key={trial.NCTId[0]} className="trial">
                   <div className={'status '+trial.OverallStatusStyle}>{status}</div>
-                  <div className='interventionDiv intervention'><span>{interventions}</span></div>
-                  <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
+                  <div className='interventionDiv intervention'><span>{getInterventions(trial)}</span></div>
+                  {/* <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div> */}
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
                 </div></>
             })

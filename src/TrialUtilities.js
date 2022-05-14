@@ -3,12 +3,12 @@
         .then(response => response.json())
     }
 
-    export async function fetchPubMedData(query) {
+    export async function fetchPubMedData(query, setKey) {
         var pubmedUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&term=' + query;
         return await GetData(pubmedUrl);
     }
 
-    export async function fetchTrialsData(query) {
+    export async function fetchTrialsData(query, setKey) {
       document.title = "'" + query + "' Trials";
       var moreToGet = 1;
       var maxRank = 999;
@@ -22,7 +22,6 @@
         if ('StudyFields' in data.StudyFieldsResponse) {
             trialCount = data.StudyFieldsResponse.NStudiesFound;
             data.StudyFieldsResponse.StudyFields.forEach((trial) => {
-            var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
             var CompletionDate = null
             if (trial.CompletionDate.length !== 0) {
               CompletionDate = trial.CompletionDate;
@@ -49,10 +48,8 @@
                     break;
             }
   
-            var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
-            var key = trial.phaseInfo.order +"-"+ datestring + trial.LeadSponsorName + trial.NCTId;
-            trial.key = key;
-            trials[key] = trial;
+            setKey(trial);
+            trials[trial.key] = trial;
           });
         }
   
@@ -121,12 +118,21 @@
         return phaseInfo;
     }
 
-    export function sortKeys(obj_1) {
+    export function getInterventions(trial) {
+        var interventions = trial.InterventionName.filter((intervention, index)=> {
+            var compare = intervention.toLowerCase();
+            return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));
+        });
+        interventions = interventions.join(', ');
+        return interventions;
+    }
+
+    export function sortKeys(obj_1, descending) {
         var key = Object.keys(obj_1)
         .sort(function order(key1, key2) {
             // sort in reverse order
-            if (key1 < key2) return +1;
-            else if (key1 > key2) return -1;
+            if (key1 > key2) return +1 * (descending ? -1 : 1);
+            else if (key1 < key2) return -1 * (descending ? -1 : 1);
             else return 0;
         }); 
           
