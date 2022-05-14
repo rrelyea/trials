@@ -1,3 +1,75 @@
+    async function GetData(url) {
+        return fetch(url)
+        .then(response => response.json())
+    }
+
+    export async function fetchPubMedData(query) {
+        var pubmedUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&term=' + query;
+        return await GetData(pubmedUrl);
+    }
+
+    export async function fetchTrialsData(query) {
+      document.title = "'" + query + "' Trials";
+      var moreToGet = 1;
+      var maxRank = 999;
+      var minRank = 1;
+      var trials = {};
+      var trialCount = 0;
+  
+      while (moreToGet > 0) {
+        var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,BriefTitle,StudyType,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&min_rnk='+minRank.toString()+'&max_rnk='+maxRank.toString();
+        var data = await GetData(url);
+        if ('StudyFields' in data.StudyFieldsResponse) {
+            trialCount = data.StudyFieldsResponse.NStudiesFound;
+            data.StudyFieldsResponse.StudyFields.forEach((trial) => {
+            var LastUpdatePostDate = trial.LastUpdatePostDate !== null ? new Date(trial.LastUpdatePostDate) : null;
+            var CompletionDate = null
+            if (trial.CompletionDate.length !== 0) {
+              CompletionDate = trial.CompletionDate;
+            } else if (trial.PrimaryCompletionDate.length !== 0) {
+              CompletionDate = trial.PrimaryCompletionDate;
+            } else if (trial.LastUpdatePostDate.length !== 0) {
+              CompletionDate = trial.LastUpdatePostDate;
+            }
+            trial.endDate = CompletionDate;
+            trial.phaseInfo = getPhaseInfo(trial.Phase[trial.Phase.length-1], trial.Phase[0], trial.StudyType);
+
+            switch (trial.OverallStatus.toString()) 
+            {
+                case "Enrolling by invitation":
+                case "Recruiting":
+                case "Active, not recruiting":
+                    trial.OverallStatusStyle = "Active";
+                    break;
+                case "Unknown status":
+                    trial.OverallStatusStyle = "Unknown";
+                    break;
+                default:
+                    trial.OverallStatusStyle = trial.OverallStatus;
+                    break;
+            }
+  
+            var datestring = LastUpdatePostDate !== null ? (LastUpdatePostDate.getFullYear() + ("0" + (LastUpdatePostDate.getMonth() + 1)).slice(-2)) : "        ";
+            var key = trial.phaseInfo.order +"-"+ datestring + trial.LeadSponsorName + trial.NCTId;
+            trial.key = key;
+            trials[key] = trial;
+          });
+        }
+  
+        if (trialCount > maxRank && maxRank < 5000)
+        {
+          minRank = minRank + 999;
+          maxRank = maxRank + 999;
+          moreToGet = 1;
+        }
+        else
+        {
+          moreToGet = 0;
+        }
+      }
+      
+      return trials;
+    }
 
     export function getPhaseInfo(lastPhase, firstPhase, studyType) {
         var phaseInfo = {group: lastPhase};
