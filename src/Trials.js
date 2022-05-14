@@ -8,6 +8,7 @@ class Trials extends React.Component {
     }
     pubmedResults = null;
     trials = null;
+    showClosed = false;
     groupings = [
       {
         name: "Phase (desc)",
@@ -35,7 +36,12 @@ class Trials extends React.Component {
       this.pubmedResults = await fetchPubMedData(query);
       this.trials = null;
       var trials = await fetchTrialsData(query);
-      this.trials = trials.sort(this.groupings[this.activeGrouping].compare);
+      this.trials = trials.filter(trial => this.showClosed || (trial.OverallStatus.toString() != "Completed" &&
+        trial.OverallStatus.toString() != "No longer available" && 
+        trial.OverallStatus.toString() != "Unknown status" && 
+        trial.OverallStatus.toString() != "Withdrawn" && 
+        trial.OverallStatus.toString() != "Terminated"))
+        .sort(this.groupings[this.activeGrouping].compare);
       this.setState({query: query});
     }
 
@@ -44,7 +50,11 @@ class Trials extends React.Component {
         this.activeGrouping = Number(e.target.selectedIndex);
         this.setState({});
     }
-
+    showClosedChanged = (e) => 
+    {
+        this.showClosed = e.target.checked;
+        this.setState({});
+    }
     render() {
       this.getData();
       this.lastGroup = null;
@@ -53,10 +63,11 @@ class Trials extends React.Component {
       var trialCount = this.trials != null ? Object.keys(this.trials).length : 0;
 
       return <>
-          {this.trials !== null && this.state.query !== null ? <><div><label>Group by:</label> <select onChange={this.chooseGrouping}>
+          {this.trials !== null && this.state.query !== null ? <><div className='tm10'>
+            <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span> <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></div></> : false }
+<div><label><input type='checkbox' onChange={this.showClosedChanged} />Show Closed</label> <label className='lm10'>Group by:</label> <select onChange={this.chooseGrouping}>
             {this.groupings.map((grouping)=> <option>{grouping.name}</option>)}
-            </select><span className='title'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") | "}</span><a className='title' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></div></> : false }
-  
+            </select> </div>  
           {this.trials !== null && trialCount > 0 ? Object.entries(this.trials).map(([k,trial], lastPhase) =>
             {
               var groupingHeader = null;

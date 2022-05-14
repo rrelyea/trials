@@ -95,7 +95,16 @@ body {
   text-align: left;
   margin-top:2px;
 }
-
+.hitCounts {
+  font-weight: bold;
+  margin-top: 10px;
+}
+.tm10 {
+  margin-top: 10px;
+}
+.lm10 {
+  margin-left: 10px;
+}
 a:link {
   text-decoration: none;
   color: yellow;
