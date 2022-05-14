@@ -13,7 +13,7 @@
       var moreToGet = 1;
       var maxRank = 999;
       var minRank = 1;
-      var trials = {};
+      var trials = [];
       var trialCount = 0;
   
       while (moreToGet > 0) {
@@ -49,7 +49,7 @@
             }
   
             setKey(trial);
-            trials[trial.key] = trial;
+            trials.push(trial);
           });
         }
   

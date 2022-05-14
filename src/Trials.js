@@ -13,37 +13,62 @@ class Trials extends React.Component {
       super(props);
       this.state = {data: null, query: null};
     }
-    items = [];
-    sortedTrials = null;
-    lastGroup = null;
     pubmedResults = null;
-    group = "phaseInfo.group".split('.');
+    trials = null;
+    groupings = [
+      {
+        name: "Phase (desc)",
+        groupBy: "phaseInfo.group".split('.'),
+        compare: function (trialA, trialB) { 
+          return  trialA.phaseInfo.order > trialB.phaseInfo.order ? -1 : 1
+          || new Date(trialA.LastUpdatePostDate) - new Date(trialB.LastUpdatePostDate)
+        }
+      },
+      {
+        name: "Sponsor",
+        groupBy: "LeadSponsorName".split('.'),
+        compare: function (trialA, trialB) { 
+          return trialA.LeadSponsorName < trialB.LeadSponsorName ? -1 : 1   
+          || new Date(trialA.LastUpdatePostDate) - new Date(trialB.LastUpdatePostDate)
+        }
+      }
+    ];
+    activeGrouping = 0;
+    lastGroup = null;
+
 
     async getData() {
       var query = this.props.query;
       this.pubmedResults = await fetchPubMedData(query);
-      this.sortedTrials = null;
+      this.trials = null;
       var trials = await fetchTrialsData(query, setKey);
-      this.sortedTrials = sortKeys(trials, true);
+      this.trials = trials.sort(this.groupings[this.activeGrouping].compare);
       this.setState({query: query});
     }
-  
+    chooseGrouping = (e) => 
+    {
+        this.activeGrouping = Number(e.target.selectedIndex);
+        this.setState({});
+    }
+
     render() {
       this.getData();
       this.lastGroup = null;
       var pubMedCount = this.pubmedResults !== null ? this.pubmedResults.esearchresult.count : 0;
       var tooManyWarning = this.state.trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
-      var trialCount = this.sortedTrials != null ? Object.keys(this.sortedTrials).length : 0;
+      var trialCount = this.trials != null ? Object.keys(this.trials).length : 0;
 
       return <>
-          {this.sortedTrials !== null && this.state.query !== null ? <h3 key='title'><span>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") | "}</span><a href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></h3> : false }
+          {this.trials !== null && this.state.query !== null ? <><div><label>Group by:</label> <select onChange={this.chooseGrouping}>
+            {this.groupings.map((grouping)=> <option>{grouping.name}</option>)}
+            </select><span className='title'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") | "}</span><a className='title' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+this.state.query}>PubMed.gov{" (" + pubMedCount + ")"}</a></div></> : false }
   
-          {this.sortedTrials !== null && trialCount > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
+          {this.trials !== null && trialCount > 0 ? Object.entries(this.trials).map(([k,trial], lastPhase) =>
             {
               var groupingHeader = null;
               var groupingValue = trial;
-              for (var i = 0; i < this.group.length; i++) {
-                groupingValue = groupingValue[this.group[i]];
+              for (var i = 0; i < this.groupings[this.activeGrouping].groupBy.length; i++) {
+                groupingValue = groupingValue[this.groupings[this.activeGrouping].groupBy[i]];
               }
               
               groupingValue = groupingValue.toString();
