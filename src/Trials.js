@@ -40,27 +40,28 @@ class Trials extends React.Component {
   
           {this.sortedTrials !== null && trialCount > 0 ? Object.entries(this.sortedTrials).map(([k,trial], lastPhase) =>
             {
-              var phaseHeader = null;
-
+              var groupingHeader = null;
               var groupingValue = trial;
               for (var i = 0; i < this.group.length; i++) {
                 groupingValue = groupingValue[this.group[i]];
               }
+              
               groupingValue = groupingValue.toString();
               if (groupingValue != this.lastGroup) {
-                phaseHeader = <h2 className='phase'>{groupingValue}</h2>;
+                groupingHeader = <h2 className='phase'>{groupingValue}</h2>;
               } 
+
               this.lastGroup = groupingValue;
               var status = trial.OverallStatus;
               if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
               if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
               
               return <>
-                {phaseHeader}
+                {groupingHeader}
                 <div key={trial.NCTId[0]} className="trial">
                   <div className={'status '+trial.OverallStatusStyle}>{status}</div>
                   <div className='interventionDiv intervention'><span>{getInterventions(trial)}</span></div>
-                  {/* <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div> */}
+                  <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div>
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
                 </div></>
             })
