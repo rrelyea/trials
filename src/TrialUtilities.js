@@ -36,6 +36,7 @@
             switch (trial.OverallStatus.toString()) 
             {
                 case "Enrolling by invitation":
+                case "Not yet recruiting":
                 case "Recruiting":
                 case "Active, not recruiting":
                     trial.OverallStatusStyle = "Active";
@@ -124,30 +125,4 @@
         });
         interventions = interventions.join(', ');
         return interventions;
-    }
-
-    export function sortKeys(obj_1, descending) {
-        var key = Object.keys(obj_1)
-        .sort(function order(key1, key2) {
-            // sort in reverse order
-            if (key1 > key2) return +1 * (descending ? -1 : 1);
-            else if (key1 < key2) return -1 * (descending ? -1 : 1);
-            else return 0;
-        }); 
-          
-        // Taking the object in 'temp' object
-        // and deleting the original object.
-        var temp = {};
-          
-        for (var i = 0; i < key.length; i++) {
-            temp[key[i]] = obj_1[key[i]];
-            delete obj_1[key[i]];
-        } 
-    
-        // Copying the object from 'temp' to 
-        // 'original object'.
-        for (var j = 0; j < key.length; j++) {
-            obj_1[key[j]] = temp[key[j]];
-        } 
-        return obj_1;
     }
