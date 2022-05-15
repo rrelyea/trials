@@ -83,9 +83,11 @@ export default function Trials(props) {
         <div className='tm10'>&nbsp;
           { trials !== null ? <>
           <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>{' '}
-          <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+props.query}>PubMed.gov{" (" + pubmedCount + ")"}</a>
+          <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+props.query}>PubMed.gov{" (" + pubmedCount + ") | "}</a>{' '}
+          <a href='https://buymeacoffee.com/rrelyea'>Sponsor this site</a>{" | "}<a href='mailto:rob@relyeas.net'>Feature request</a>
           </> : false }
         </div>
+        <div className='status'></div>
 
         <div>
           <label><input type='checkbox' defaultValue={showClosed} onChange={(e) => showClosedChanged(e)} /><span id='showClosedLabel'>Show Closed {!showClosed && fetchedTrials !== null ? "(" + (fetchedTrials.length - trialCount) + ")": false}</span></label>
