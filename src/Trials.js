@@ -82,14 +82,14 @@ export default function Trials(props) {
     return <>
         <div className='tm10'>&nbsp;
           { trials !== null ? <>
-          <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>
+          <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>{' '}
           <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+props.query}>PubMed.gov{" (" + pubmedCount + ")"}</a>
           </> : false }
         </div>
 
         <div>
           <label><input type='checkbox' defaultValue={showClosed} onChange={(e) => showClosedChanged(e)} /><span id='showClosedLabel'>Show Closed {!showClosed && fetchedTrials !== null ? "(" + (fetchedTrials.length - trialCount) + ")": false}</span></label>
-          <label className='lm10'>Group by:</label>
+          <label className='lm10'>Group by:</label>{' '}
           <select onChange={(e) => chooseGrouping(e)}>
           {groupings.map((grouping)=> <option>{grouping.name}</option>)}
           </select>
