@@ -149,5 +149,60 @@
         "approach":"Gene Therapy",
         "sponsor":"4DMT",
         "sponsorLink":"https://4dmoleculartherapeutics.com/product-pipeline/pipeline-overview/"
+    },
+
+    {
+        "trial":"NCT03815825",
+        "condition":"AMD-Dry",
+        "approach":"CB inhibitor",
+        "sponsor":"Ionis",
+        "sponsorLink":"https://www.ionispharma.com/ionis-innovation/pipeline/"
+    },
+    {
+        "trial":"NCT04435366",
+        "condition":"AMD-Dry",
+        "approach":"C5 inhibitor",
+        "sponsor":"Iveric bio",
+        "sponsorLink":"https://ivericbio.com/why-iveric/#pipeline"
+    },
+    {
+        "trial":"NCT04855045",
+        "condition":"LCA",
+        "geneTarget":"CEP290",
+        "approach":"AON",
+        "sponsor":"ProQR",
+        "sponsorLink":"https://www.proqr.com/pipeline"
+    },
+    {
+        "trial":"NCT04278131",
+        "condition":["RP","Usher","Others"],
+        "approach":"optogenetic",
+        "sponsor":"Bionic Sight",
+        "sponsorLink":"https://www.bionicsightllc.com/"
+    },    
+    {
+        "trial":"NCT03326336",
+        "condition":["RP","Usher","Others"],
+        "approach":"optogenetic",
+        "sponsor":"GenSight",
+        "sponsorLink":"https://www.gensight-biologics.com/product/gs030-for-retinitis-pigmentosa/"
+    },
+    {
+        "trial":"NCT04945772",
+        "condition":["RP","Usher","Others"],
+        "approach":"optogenetic",
+        "sponsor":"Nanoscope",
+        "sponsorLink":"https://nanostherapeutics.com/pipeline/"
+    },
+    {
+        "trial":"NCT05158296,NCT05176717,NCT05085964",
+        "condition":"Usher syndrome 2A",
+        "approach":"AON",
+        "sponsor":"ProQR",
+        "sponsorLink":"https://www.proqr.com/pipeline"
     }
+
+
+
+
 ]

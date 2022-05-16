@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTrialsData, fetchPubMedData, getInterventions } from "./TrialUtilities.js";
+import { fetchTrialsData, fetchPubMedData, getInterventions, GetData } from "./TrialUtilities.js";
 
 export default function Trials(props) {
     const [lastQuery, setLastQuery] = useState(null);
@@ -14,9 +14,25 @@ export default function Trials(props) {
       fetch(); 
       async function fetch() {
         if (props.query !== lastQuery) {
-          var trials = await fetchTrialsData(props.query);
+          var query = props.query;
+          if (query.toLowerCase() === "ffb-pipeline") {
+            var url = window.location.pathname + "/ffb-pipeline.json";
+            var ffbTrials = await GetData(url);
+            var NCTIds = [];
+            ffbTrials.forEach(ffbTrial => {
+              var ids = ffbTrial.trial.split(',');
+              ids.forEach(NCTId => {
+                NCTIds.push(NCTId);
+              });
+            });
+            query = NCTIds.join(" OR ")
+          } else {
+            query = query.replaceAll(" or ", " OR ").replaceAll(" and ", " AND ").replaceAll(" not ", " NOT ");
+          }
+
+          var trials = await fetchTrialsData(query);
           setFetchedTrials(trials);
-          setLastQuery(props.query);
+          setLastQuery(query);
         }
       }
     }, [props.query]);

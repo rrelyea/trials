@@ -1,6 +1,7 @@
 import './App.css';
 import React from 'react';
 import Trials from './Trials.js';
+import { GetData } from "./TrialUtilities.js";
 
 function Logo() {
   return (<span>Search: </span>);
@@ -23,24 +24,29 @@ class App extends React.Component {
     this.state = {query: '', queries: []}
     window.addEventListener('popstate', this.onBackButtonEvent);
   }
+
   navigateTo = (query) => {
     if (query === null) {
       var searchBox = document.getElementById('searchBox');
       query = searchBox.value;
     }
+
     this.setState({query: query});
     const params = new URLSearchParams(window.location.search);
     params.set('q', query);
     if (this.state.queries === null) {
       params.delete('qs');
     }
-    if (searchBox.value == "")
+
+    if (searchBox.value === "")
     {
       params.delete('q');
     }
+
     var paramsString = params.toString();
     window.history.pushState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
   }
+
   onBackButtonEvent = () => {
     var urlParams = new URLSearchParams(window.location.search);
     var query = urlParams.has('q') ? urlParams.get('q') : '';
@@ -48,25 +54,30 @@ class App extends React.Component {
     this.setSearchBoxValue(query);
     this.setState({query: query, queries: queries});
   }
+
   setSearchBoxValue = (query) => {
     var searchBox = document.getElementById('searchBox');
     searchBox.value = query;
   }
+
   componentDidMount() {
     var urlParams = new URLSearchParams(window.location.search);
     var query = urlParams.has('q') ? urlParams.get('q') : '';
     var queries = urlParams.has('qs') ? urlParams.get('qs').split(',') : [];
     this.setState({query: query, queries: queries});
   }
+
   keyDown = (event) => {
     if (event.keyCode === 13) {
       this.navigateTo(null);
     }
   }
+
   handleChange = (event) => {
     this.setState({query:event.target.value});
     this.setSearchBoxValue(event.target.value);
   }
+
   render() {
     var queryList = null;
     if (this.state.queries.length > 0) {
@@ -95,4 +106,5 @@ class App extends React.Component {
     );
   }
 }
+
 export default App;

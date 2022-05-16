@@ -1,4 +1,4 @@
-    async function GetData(url) {
+    export async function GetData(url) {
         return fetch(url)
         .then(response => response.json())
     }
@@ -64,7 +64,7 @@
           moreToGet = 0;
         }
       }
-      
+
       return trials;
     }
 
