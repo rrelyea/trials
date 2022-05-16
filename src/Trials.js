@@ -7,7 +7,6 @@ export default function Trials(props) {
     const [showClosed, setShowClosed] = useState(false);
     const [activeGrouping, setActiveGrouping] = useState(0);
     const [trialCount, setTrialCount] = useState(0);
-    const [pubmedResults, setPubmedResults] = useState(null);
     const [pubmedCount, setPubmedCount] = useState(0);
     const [fetchedTrials, setFetchedTrials] = useState(null);
 
@@ -27,7 +26,6 @@ export default function Trials(props) {
       async function fetch2() {
         if (props.query != lastQuery) {
           var results = await fetchPubMedData(props.query);
-          setPubmedResults(results);
           setPubmedCount(results.esearchresult.count);
         }
       }
@@ -77,6 +75,13 @@ export default function Trials(props) {
         setShowClosed(e.target.checked);
     }
 
+    function firstFew(conditions) {
+      if (conditions.length > 3) {
+        return conditions[0] + ", " + conditions[1] + ", " + conditions[2] + ", ...";
+      } else {
+        return conditions.join(", ");
+      }
+    }
 
     var tooManyWarning = trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
     return <>
@@ -121,6 +126,7 @@ export default function Trials(props) {
                 <div className='interventionDiv intervention'><span>{getInterventions(trial)}</span></div>
                 { activeGrouping == 0 ? <div className='interventionDiv sponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
                 <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
+                <div className='title'>Conditions: {firstFew(trial.Condition)}</div>
               </div></>
           })
         : <h3>searching for trials...</h3>}  

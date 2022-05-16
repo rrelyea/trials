@@ -1,0 +1,153 @@
+[
+    {
+        "trial":"NCT02599922",
+        "condition":"Achromatopsia",
+        "geneTarget":"CNGB3",
+        "approach":"Gene Therapy",
+        "sponsor":"AGTC",
+        "sponsorLink":"https://agtc.com/programs/achromatopsia-2/"
+    },
+    {
+        "trial":"NCT02935517",
+        "condition":"Achromatopsia",
+        "geneTarget":"CNGA3",
+        "approach":"Gene Therapy",
+        "sponsor":"AGTC",
+        "sponsorLink":"https://agtc.com/programs/achromatopsia-2/"
+    },
+    {
+        "trial":"NCT03758404",
+        "condition":"Achromatopsia",
+        "geneTarget":"CNGA3",
+        "approach":"Gene Therapy",
+        "sponsor":"MeriaGTx UK II Ltd",
+        "sponsorLink":"https://meiragtx.com/research-development/pipeline/"
+    },
+    {
+        "trial":"NCT03001310",
+        "condition":"Achromatopsia",
+        "geneTarget":"CNGB3",
+        "approach":"Gene Therapy",
+        "sponsor":"MeriaGTx UK II Ltd",
+        "sponsorLink":"https://meiragtx.com/research-development/pipeline/"
+    },
+    {
+        "trial":"NCT02610582",
+        "condition":"Achromatopsia",
+        "geneTarget":"CNGA3",
+        "approach":"Gene Therapy",
+        "sponsor":"STZ eyetrial",
+        "sponsorLink":"http://www.eye-tuebingen.de/clinical-research-labs/fischerlab/projects/"
+    },
+    {
+        "trial":"NCT03846193",
+        "condition":"Macular Degeneration, dry",
+        "approach":"Gene Therapy",
+        "sponsor":"Gyroscope",
+        "sponsorLink":"https://www.gyroscopetx.com/clinical-trials/"
+    },
+    {
+        "trial":"NCT05228145",
+        "condition":"Batten Disease",
+        "geneTarget":"CLN5",
+        "approach":"Gene Therapy",
+        "sponsor":"Neurogene",
+        "sponsorLink":"https://www.neurogene.com/our-product-pipeline/"
+    },
+    {
+        "trial":"NCT04483440",
+        "condition":"Choroideremia",
+        "geneTarget":"REP1",
+        "approach":"Gene Therapy",
+        "sponsor":"4D Molecular Therapy",
+        "sponsorLink":"https://4dmoleculartherapeutics.com/product-pipeline/pipeline-overview/"
+    },
+    {
+        "trial":"NCT02671539",
+        "condition":"Choroideremia",
+        "geneTarget":"REP1",
+        "approach":"Gene Therapy",
+        "sponsor":"STZ eyetrial",
+        "sponsorLink":"http://www.eye-tuebingen.de/clinical-research-labs/fischerlab/projects/"
+    },
+    {
+        "trial":"NCT03920007",
+        "condition":"LCA",
+        "geneTarget":"GUCY2D",
+        "approach":"Gene Therapy",
+        "sponsor":"Atsena",
+        "sponsorLink":"https://atsenatx.com/programs/pipeline/"
+    },
+    {
+        "trial":"NCT03872479",
+        "condition":"LCA",
+        "geneTarget":"CEP290",
+        "approach":"Gene Therapy",
+        "sponsor":"Editas",
+        "sponsorLink":"https://www.editasmedicine.com/gene-editing-pipeline/"
+    },
+    {
+        "trial":"NCT02781480",
+        "condition":"LCA",
+        "geneTarget":"RPE65",
+        "approach":"Gene Therapy",
+        "sponsor":"MeiraGTx/Janssen",
+        "sponsorLink":"https://meiragtx.com/research-development/pipeline/"
+    },
+    {
+        "trial":"NCT03328130",
+        "condition":"RP",
+        "geneTarget":"PDE6B",
+        "approach":"Gene Therapy",
+        "sponsor":"Coave Therapeutics",
+        "sponsorLink":"https://coavetx.com/#pipeline"
+    },
+    {
+        "trial":"NCT03374657",
+        "condition":"RP",
+        "geneTarget":"RLBP1",
+        "approach":"Gene Therapy",
+        "sponsor":"Novartis",
+        "sponsorLink":"https://www.novartis.com/research-development/novartis-pipeline?search_api_fulltext=retinitis%20pigmentosa"
+    },
+    {
+        "trial":"NCT05203939",
+        "condition":"RP",
+        "geneTarget":"NR2E3, RHO",
+        "approach":"Gene Therapy",
+        "sponsor":"Ocugen",
+        "sponsorLink":"https://ocugen.com/therapeutic-areas/"
+    },
+    {
+        "trial":"NCT02317887",
+        "condition":"Retinoschisis",
+        "geneTarget":"RS1",
+        "approach":"Gene Therapy",
+        "sponsor":"NEI",
+        "sponsorLink":"https://www.nei.nih.gov/research/research-labs-and-branches/translational-research-retinal-and-macular-degeneration"
+    },
+    {
+        "trial":"NCT04850118",
+        "condition":"X-Linked RP",
+        "geneTarget":"RPGR",
+        "approach":"Gene Therapy",
+        "sponsor":"AGTC",
+        "sponsorLink":"https://agtc.com/programs/"
+    },
+    {
+        "trial":"NCT04671433",
+        "condition":"X-Linked RP",
+        "geneTarget":"RPGR",
+        "approach":"Gene Therapy",
+        "sponsor":"MeriaGTx/Jannsen",
+        "sponsorLink":"https://meiragtx.com/research-development/pipeline/"
+    },
+    {
+        "trial":"NCT04517149",
+        "condition":"X-Linked RP",
+        "geneTarget":"RPGR",
+        "approach":"Gene Therapy",
+        "sponsor":"4DMT",
+        "sponsorLink":"https://4dmoleculartherapeutics.com/product-pipeline/pipeline-overview/"
+    }
+]
