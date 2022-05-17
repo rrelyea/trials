@@ -1,6 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { fetchTrialsData, fetchPubMedData, getInterventions, GetData } from "./TrialUtilities.js";
 
+async function expandUrls (url) {
+  var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname + "/");
+  if (!urlToGet.toString().endsWith(".json")) {
+    urlToGet = urlToGet + ".json";
+  }
+  var ffbTrials = await GetData(urlToGet);
+  var NCTIds = [];
+  ffbTrials.forEach(trialInfo => {
+    var ids = trialInfo.trial.split(',');
+    ids.forEach(NCTId => {
+      NCTIds.push(NCTId);
+    });
+  });
+  var find = "{" + url + "}";
+  var replace = "(" + NCTIds.join(" OR ") + ")";
+  return ({
+    regEx: new RegExp(find, "ig"),
+    replace: replace
+  });
+}
+
+// expand {relative-uri} or {absolute-uri} and replace 'or', 'and', 'not with uppercase versions.
+async function expandAndPolishQuery(query) {
+  var found = [],          // an array to collect the strings that are found
+  rxp = /{([^}]+)}/g,
+  str = query,
+  curMatch;
+
+  while( curMatch = rxp.exec( str ) ) {
+      found.push( curMatch[1] );
+  }
+
+  for (var i = 0; i < found.length; i++) {
+    var expand = await expandUrls(found[i]);
+    query = query.replace(expand.regEx, expand.replace);
+  }
+
+  query = query.replaceAll(" or ", " OR ").replaceAll(" and ", " AND ").replaceAll(" not ", " NOT ");
+}
+
 export default function Trials(props) {
     const [lastQuery, setLastQuery] = useState(null);
     const [trials, setTrials] = useState(null);
@@ -14,28 +54,15 @@ export default function Trials(props) {
       fetch(); 
       async function fetch() {
         if (props.query !== lastQuery) {
-          var query = props.query;
-          if (query.toLowerCase() === "ffb-pipeline") {
-            var url = window.location.pathname + "/ffb-pipeline.json";
-            var ffbTrials = await GetData(url);
-            var NCTIds = [];
-            ffbTrials.forEach(ffbTrial => {
-              var ids = ffbTrial.trial.split(',');
-              ids.forEach(NCTId => {
-                NCTIds.push(NCTId);
-              });
-            });
-            query = NCTIds.join(" OR ")
-          } else {
-            query = query.replaceAll(" or ", " OR ").replaceAll(" and ", " AND ").replaceAll(" not ", " NOT ");
-          }
+          var query = await expandAndPolishQuery(props.query);
 
-          var trials = await fetchTrialsData(query);
-          setFetchedTrials(trials);
-          setLastQuery(query);
+
+          var fetchedTrials = await fetchTrialsData(query);
+          setFetchedTrials(fetchedTrials);
+          setLastQuery(props.query);
         }
       }
-    }, [props.query]);
+    }, [props.query, fetchedTrials]);
 
     useEffect(() => { 
       fetch2();
