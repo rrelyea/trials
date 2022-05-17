@@ -8,8 +8,7 @@
         return await GetData(pubmedUrl);
     }
 
-    export async function fetchTrialsData(query) {
-      document.title = "'" + query + "' Trials";
+    export async function fetchTrialsData(query) {     
       var moreToGet = 1;
       var maxRank = 999;
       var minRank = 1;

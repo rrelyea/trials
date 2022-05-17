@@ -59,6 +59,7 @@ export default function Trials(props) {
           var fetchedTrials = await fetchTrialsData(query);
           setFetchedTrials(fetchedTrials);
           setLastQuery(props.query);
+          document.title = "'" + props.query + "' Trials";
         }
       }
     }, [props.query, fetchedTrials]);
