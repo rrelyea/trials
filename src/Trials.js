@@ -39,6 +39,7 @@ async function expandAndPolishQuery(query) {
   }
 
   query = query.replaceAll(" or ", " OR ").replaceAll(" and ", " AND ").replaceAll(" not ", " NOT ");
+  return query;
 }
 
 export default function Trials(props) {
@@ -55,8 +56,6 @@ export default function Trials(props) {
       async function fetch() {
         if (props.query !== lastQuery) {
           var query = await expandAndPolishQuery(props.query);
-
-
           var fetchedTrials = await fetchTrialsData(query);
           setFetchedTrials(fetchedTrials);
           setLastQuery(props.query);
