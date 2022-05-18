@@ -81,7 +81,8 @@ export default function Trials(props) {
     const [sort, setSort] = useState(0);
     const [view, setView] = useState(0);
     const [trialCount, setTrialCount] = useState(0);
-    const [pubmedQuery, setPubmedQuery] = useState(0);
+    const [computedQuery, setComputedQuery] = useState(null);
+    const [pubmedQuery, setPubmedQuery] = useState(null);
     const [pubmedCount, setPubmedCount] = useState(0);
     const [fetchedTrials, setFetchedTrials] = useState(null);
 
@@ -98,12 +99,12 @@ export default function Trials(props) {
     }, [path]);
 
     useEffect(() => {
-      fetch(); 
-      async function fetch() {
+      fetchClinicalTrials(); 
+      async function fetchClinicalTrials() {
         if (props.query !== lastQuery || props.activeFeed != lastFeed) {
           var queryPlusFeed = incorporateFeedIntoQuery(props.query, props.activeFeed);
           var queryInfo = await expandAndPolishQuery(queryPlusFeed);
-
+          setComputedQuery(queryInfo.query);
           var fetchedTrials = await fetchTrialsData(queryInfo.query, queryInfo.dataAnnotations);
           setFetchedTrials(fetchedTrials);
           setLastQuery(props.query);
@@ -114,8 +115,8 @@ export default function Trials(props) {
     }, [props.query, props.activeFeed, fetchedTrials]);
 
     useEffect(() => { 
-      fetch2();
-      async function fetch2() {
+      fetchPubMed();
+      async function fetchPubMed() {
         if (props.query != lastQuery || props.activeFeed != lastFeed) {
           var queryPlusFeed = incorporateFeedIntoQuery(props.query, props.activeFeed);
           var queryInfo = await expandAndPolishQuery(queryPlusFeed);
@@ -346,8 +347,8 @@ export default function Trials(props) {
         <div className='tm10'>&nbsp;
           { trials !== null ? <>
           <label>Result count:&nbsp;
-            <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>{' '}
-            <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+pubmedQuery}>PubMed.gov{" (" + pubmedCount + ")"}</a>
+            <a className='hitCounts' href={'https://clinicaltrials.gov/ct2/results?&term='+encodeURIComponent(computedQuery)}>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ")"}</a>{' | '}
+            <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+encodeURIComponent(pubmedQuery)}>PubMed.gov{" (" + pubmedCount + ")"}</a>
           </label>       
           </> : false }
         </div>
