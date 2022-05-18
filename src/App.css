@@ -80,7 +80,7 @@ body {
 .interventionDiv {
   float: left;
 }
-.group {
+.sortHeader {
   text-align: left;
   padding-left: 10px;
   border-bottom: 1px solid lightgrey;

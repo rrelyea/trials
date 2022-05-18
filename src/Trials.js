@@ -57,7 +57,7 @@ export default function Trials(props) {
     const [lastQuery, setLastQuery] = useState(null);
     const [trials, setTrials] = useState(null);
     const [hideClosed, setHideClosed] = useState(false);
-    const [activeGrouping, setActiveGrouping] = useState(0);
+    const [activeSort, setActiveSort] = useState(0);
     const [activeView, setActiveView] = useState(0);
     const [trialCount, setTrialCount] = useState(0);
     const [pubmedCount, setPubmedCount] = useState(0);
@@ -95,11 +95,11 @@ export default function Trials(props) {
             trial.OverallStatus.toString() != "Unknown status" && 
             trial.OverallStatus.toString() != "Withdrawn" && 
             trial.OverallStatus.toString() != "Terminated"));
-        var trials = groupings[activeGrouping].name !== "None" ? filteredTrials.sort(groupings[activeGrouping].compare) : filteredTrials;
+        var trials = sortOrders[activeSort].name !== "None" ? filteredTrials.sort(sortOrders[activeSort].compare) : filteredTrials;
         setTrials(trials);
         setTrialCount(trials.length);
       }
-    }, [fetchedTrials, activeGrouping, hideClosed, activeView]);
+    }, [fetchedTrials, activeSort, hideClosed, activeView]);
 
     function rankApproach(trial) {
       var approach = trial.annotations?.approach;
@@ -113,9 +113,9 @@ export default function Trials(props) {
       }
     }
 
-    var groupings = [
+    var sortOrders = [
       {
-        name: "Phase (desc)",
+        name: "Phase",
         groupBy: "phaseInfo.name".split('.'),
         compare: function (trialA, trialB) { 
           return  trialA.phaseInfo.number > trialB.phaseInfo.number ? -1 : 1
@@ -174,7 +174,7 @@ export default function Trials(props) {
     ];
 
     function chooseGrouping(e) {
-        setActiveGrouping(Number(e.target.selectedIndex));
+      setActiveSort(Number(e.target.selectedIndex));
     }
     
     function chooseView(e) {
@@ -182,7 +182,7 @@ export default function Trials(props) {
     }
 
     function hideClosedChanged(e) {
-        setHideClosed(e.target.checked);
+      setHideClosed(e.target.checked);
     }
 
     function defaultStyle(trial, groupingHeader) {
@@ -192,11 +192,11 @@ export default function Trials(props) {
       return <>
               {groupingHeader}
               <div key={trial.NCTId[0]} className="trial">
-                  <div className={'oldstatus '+trial.OverallStatusStyle}>{activeGrouping == 1 ? trial.phaseInfo.name+"-":false}{status}</div>
+                  <div className={'oldstatus '+trial.OverallStatusStyle}>{sortOrders[activeSort].name !== "Phase" ? trial.phaseInfo.name+"-":false}{status}</div>
                   <div className='interventionDiv intervention'><span>{getInterventions(trial, true)}</span></div>
-                  { activeGrouping == 1 ? <div className='interventionDiv oldsponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
+                  { sortOrders[activeSort].name !== "Sponsor" ? <div className='interventionDiv oldsponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
-                  <div className='title'>Conditions: {firstFew(trial.Condition)}</div>
+                  <div className='title'>Conditions: {firstFew(trial.Condition, ",")}</div>
               </div></>
     }
 
@@ -300,34 +300,35 @@ export default function Trials(props) {
 
         <div className='tbm10'>
           <label><input type='checkbox' defaultValue={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span id='showClosedLabel'>Hide Closed</span></label>
-          <label className='lm10'>Sort by:</label>{' '}
+          <label className='lm10'>Sort by:&nbsp;
           <select onChange={(e) => chooseGrouping(e)}>
-          {groupings.map((grouping)=> <option>{grouping.name}</option>)}
+          {sortOrders.map((grouping)=> <option>{grouping.name}</option>)}
           </select>
-          <label className='lm10'>View:</label>{' '}
-          <select onChange={(e) => chooseView(e)}>
+          </label>
+          <label className='lm10'>View:&nbsp;<select onChange={(e) => chooseView(e)}>
           {views.map((view)=> <option>{view.name}</option>)}
           </select>
+          </label>
         </div>  
         {trials !== null ? Object.entries(trials).map(([k,trial], lastPhase) =>
           {
-            var groupingHeader = null;
-            if (groupings[activeGrouping].name !== "None") {
+            var sortHeader = null;
+            if (sortOrders[activeSort].name !== "None") {
               var groupingValue = trial;
-              for (var i = 0; i < groupings[activeGrouping].groupBy.length; i++) {
-                groupingValue = groupingValue[groupings[activeGrouping].groupBy[i]];
+              for (var i = 0; i < sortOrders[activeSort].groupBy.length; i++) {
+                groupingValue = groupingValue[sortOrders[activeSort].groupBy[i]];
                 if (groupingValue == null) { break; }
               }
 
-              groupingValue = groupingValue != null ? groupingValue.toString() : groupings[activeGrouping].name + " Type Missing";
+              groupingValue = groupingValue != null ? groupingValue.toString() : sortOrders[activeSort].name + " Type Missing";
               if (groupingValue != lastGroup) {
-                groupingHeader = <div className='group'>{groupingValue}</div>;
+                sortHeader = <div className='sortHeader'>{groupingValue}</div>;
               } 
 
               lastGroup = groupingValue;
             }
 
-            return views[activeView].method(trial, groupingHeader);
+            return views[activeView].method(trial, sortHeader);
             
           })
         : <h3>searching for trials...</h3>}  
