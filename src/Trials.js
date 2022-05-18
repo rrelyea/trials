@@ -115,11 +115,6 @@ export default function Trials(props) {
 
     var groupings = [
       {
-        name: "None",
-        groupBy: null,
-        compare: null
-      },     
-      {
         name: "Phase (desc)",
         groupBy: "phaseInfo.name".split('.'),
         compare: function (trialA, trialB) { 
@@ -134,6 +129,11 @@ export default function Trials(props) {
           return (trialA.LeadSponsorName < trialB.LeadSponsorName ? -1 : 1)
         }
       },
+      {
+        name: "None",
+        groupBy: null,
+        compare: null
+      },     
       {
         name: "Approach",
         groupBy: "annotations.approach".split('.'),
@@ -152,8 +152,16 @@ export default function Trials(props) {
 
     var views = [
       {
+        name: 'Default',
+        method: defaultStyle,
+      },
+      {
         name: 'ClinicalTrials.gov (classic)',
         method: clinicalTrialsGovStyle,
+      },
+      {
+        name: 'Arrow',
+        method: arrowStyle,
       },
       {
         name: 'Table (classic)',
@@ -162,16 +170,7 @@ export default function Trials(props) {
       {
         name: 'Table (new)',
         method: tableStyle2,
-      },
-      {
-        name: 'Default',
-        method: defaultStyle,
-      },
-
-      {
-        name: 'Arrow',
-        method: arrowStyle,
-      },
+      }
     ];
 
     function chooseGrouping(e) {
