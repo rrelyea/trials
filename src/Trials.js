@@ -157,7 +157,7 @@ export default function Trials(props) {
       },
       {
         name: 'ClinicalTrials.gov (classic)',
-        method: clinicalTrialsGovStyle,
+        method: clinicalTrialsClassicStyle,
       },
       {
         name: 'Arrow',
@@ -187,7 +187,7 @@ export default function Trials(props) {
 
     function defaultStyle(trial, groupingHeader) {
       var status = trial.OverallStatus;
-      if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
+      if (status == "Completed" || status == "Terminated" || status == "Suspended") status = status + " " + new Date(trial.endDate).getFullYear();
       if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
       return <>
               {groupingHeader}
@@ -196,7 +196,7 @@ export default function Trials(props) {
                   <div className='interventionDiv intervention'><span>{getInterventions(trial, true)}</span></div>
                   { sortOrders[activeSort].name !== "Sponsor" ? <div className='interventionDiv oldsponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
-                  <div className='title'>Conditions: {firstFew(trial.Condition, ",")}</div>
+                  <div className='title'>Conditions: {firstFew(trial.Condition, 3, ", ")}</div>
               </div></>
     }
 
@@ -216,14 +216,14 @@ export default function Trials(props) {
               <div key={trial.NCTId[0]} className={trialStyle}>
                   <span className='tal w200'>
 
-                  {trial.annotations != null ? trial.annotations.condition : firstFew(trial.Condition)}
+                  {trial.annotations != null ? trial.annotations.condition : firstFew(trial.Condition, 3, ", ")}
                   {trial.annotations != null && trial.annotations.approachDetail != null ? " (" + trial.annotations.approachDetail +") - " : " - "}
                   <a href={trial.annotations?.sponsorLink}>{ true ? (trial.annotations?.sponsor != null ? trial.annotations.sponsor : cleanSponsor(trial.LeadSponsorName)) : cleanSponsor(trial.LeadSponsorName)}</a>
                   </span>
-                  <span className='tal w50'>
+                  <span className='tal w120'>
                     {trial.phaseInfo.name} 
                   </span>
-                  { modern ? <span className='tal w50'>
+                  { modern ? <span className='tal w120'>
                     <a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a>
                   </span> : false }
                   
@@ -231,7 +231,7 @@ export default function Trials(props) {
               </div></>
     }
 
-    function clinicalTrialsGovStyle(trial, groupingHeader) {
+    function clinicalTrialsClassicStyle(trial, groupingHeader) {
       var status = trial.OverallStatus;
       if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
       if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
@@ -239,23 +239,23 @@ export default function Trials(props) {
       return <>
               {groupingHeader}
               <div key={trial.NCTId[0]} className={trialStyle}>
-                  <span className='tal w50'>
+                  <span className='tal w120'>
                     {trial.OverallStatus} 
                   </span>
                   <span className='tal w200'>
                     <a href={'https://clinicaltrials.gov/ct2/show/'+trial.NCTId[0]}>{trial.BriefTitle}</a>
                   </span>
-                  <span className='tal w50'>
-                    {firstFew(trial.Condition, "*")} 
+                  <span className='tal w120'>
+                    {firstFew(trial.Condition, 2, "*")} 
                   </span>
-                  <span className='tal w50'>
-                    {getInterventions(trial, false)} 
+                  <span className='tal w150'>
+                    {firstFew(getInterventions(trial, false), 3, " | ")} 
                   </span>
-                  <span className='tal w50'>
+                  <span className='tal w120'>
                     {trial.phaseInfo.name} 
                   </span>
-                  <span className='tal w100'>
-                    {firstFew(trial.LocationFacility,",")}
+                  <span className='tal w200'>
+                    {firstFew(trial.LocationFacility, 3, ", ")}
                   </span>
               </div></>
     }
@@ -282,7 +282,7 @@ export default function Trials(props) {
                   <div className='info interventions'><span>{getInterventions(trial, true)}</span></div>
                   { false ? <span className='info sponsor'>{trial.LeadSponsorName}</span> : false }
                   <div className={'info status '}>{status}</div>
-                  <div className='info approach'>{trial.annotations?.condition != null ? trial.annotations.condition : firstFew(trial.Condition)} {trial.annotations?.geneTarget != null ? "(" + trial.annotations?.geneTarget + ")" : null}
+                  <div className='info approach'>{trial.annotations?.condition != null ? trial.annotations.condition : firstFew(trial.Condition, 3, ", ")} {trial.annotations?.geneTarget != null ? "(" + trial.annotations?.geneTarget + ")" : null}
                     {' - '}<a href={trial.annotations?.sponsorLink}>{trial.annotations?.sponsor != null ? trial.annotations.sponsor : trial.LeadSponsorName}</a></div>
               </div></>
     }
@@ -292,8 +292,10 @@ export default function Trials(props) {
     return <>
         <div className='tm10'>&nbsp;
           { trials !== null ? <>
-          <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>{' '}
-          <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+props.query}>PubMed.gov{" (" + pubmedCount + ")"}</a>          
+          <label>Result count:&nbsp;
+            <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>{' '}
+            <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+props.query}>PubMed.gov{" (" + pubmedCount + ")"}</a>
+          </label>       
           </> : false }
         </div>
         <div className='status'></div>

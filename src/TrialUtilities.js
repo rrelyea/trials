@@ -44,6 +44,7 @@
                 case "Enrolling by invitation":
                 case "Not yet recruiting":
                 case "Recruiting":
+                case "Approved for marketing":
                 case "Active, not recruiting":
                     trial.OverallStatusStyle = "Active";
                     break;
@@ -141,12 +142,11 @@
         var interventions = trial.InterventionName;
         if (hidePlacebo) {
             interventions = interventions.filter((intervention, index)=> {
-            var compare = intervention.toLowerCase();
-            return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));
+                var compare = intervention.toLowerCase();
+                return (!compare.includes("placebo") && !compare.startsWith("sham") && !compare.includes("standard care") && !compare.includes("standard of care") && !compare.includes("standard-of-care"));
             });
         }
 
-        interventions = interventions.join(', ');
         return interventions;
     }
 
@@ -155,21 +155,22 @@
         return sponsorName;
     }
 
-    export function firstFew(conditions, style) {
+    export function firstFew(items, maxCount, style) {
         var useThese;
-        if (conditions.length > 3) {
+        if (items.length > maxCount) {
           useThese = [];
-          useThese.push(conditions[0]);
-          useThese.push(conditions[1]);
-          useThese.push(conditions[2]);
+          for (var i = 0; i < maxCount; i++) {
+            useThese.push(items[i]);
+          }
           useThese.push("...");
         } else {
-          useThese = conditions;
+          useThese = items;
         }
   
-        if (style === ",") {
-          return useThese.join(", ");
-        } else if (style === "*") {
+
+        if (style === "*") {
           return "*" + useThese.join("\n *");
+        } else {
+          return useThese.join(style);
         }
     }

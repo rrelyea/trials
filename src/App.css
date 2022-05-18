@@ -120,12 +120,22 @@ body {
   vertical-align: top;
 }
 .w100 {
-  width: 200px;
+  width: 100px;
   display: inline-block;
   vertical-align: top;
 }
-.w50 {
-  width: 100px;
+.w180 {
+  width: 180px;
+  display: inline-block;
+  vertical-align: top;
+}
+.w150 {
+  width: 150px;
+  display: inline-block;
+  vertical-align: top;
+}
+.w120 {
+  width: 120px;
   display: inline-block;
   vertical-align: top;
 }

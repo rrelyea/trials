@@ -3,10 +3,6 @@ import React from 'react';
 import Trials from './Trials.js';
 import { GetData } from "./TrialUtilities.js";
 
-function Logo() {
-  return (<span>Search: </span>);
-}
-
 class SearchBox extends React.Component {
   get_value() {
     var searchBox = document.getElementById('searchBox');
@@ -96,8 +92,9 @@ class App extends React.Component {
     return (
       <div className="App">
           {queryList}
-          <Logo />
-          <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />
+          <label>Search for&nbsp;
+            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />&nbsp; in ClinicalTrials.gov
+          </label>{' '}
           <input type='button' value='Go' onClick={() => this.navigateTo(null)} />
           {this.state.query !== "" ?
           <Trials id="trials" query={this.state.query} /> :
