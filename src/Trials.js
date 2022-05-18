@@ -91,7 +91,7 @@ export default function Trials(props) {
       var urlParams = new URLSearchParams(window.location.search);
       var sortParam = urlParams.has('sort') ? Number(urlParams.get('sort')) : 0;
       var viewParam = urlParams.has('view') ? Number(urlParams.get('view')) : 0;
-      var hideClosedParam = urlParams.has('hideClosed') ? urlParams.get('hideClosed') : false;
+      var hideClosedParam = urlParams.has('hideClosed') ? urlParams.get('hideClosed') === 'true' : false;
       setSort(sortParam);
       setView(viewParam);
       setHideClosed(hideClosedParam);
@@ -355,7 +355,7 @@ export default function Trials(props) {
 
         <div className='tbm10'>
           <label>
-            <input type='checkbox' checked={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span id='showClosedLabel'>Hide Closed</span>
+            <input type='checkbox' checked={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span>Hide Closed</span>
           </label>
           <label className='lm10'>Sort by:&nbsp;
             <select onChange={(e) => chooseSort(e)} value={sortOrders[sort].name} >

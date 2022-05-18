@@ -128,7 +128,7 @@ class App extends React.Component {
     return (
       <div className="App">
           <label>Search for&nbsp;
-            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />&nbsp; in <span>
+            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} /> in <span>
               <select onChange={this.chooseFeed} value={this.state.activeFeed}>
                 {options}
               </select>
