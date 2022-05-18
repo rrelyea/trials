@@ -27,13 +27,17 @@ async function expandUrls (url) {
 }
 
 // expand {relative-uri} or {absolute-uri} and replace 'or', 'and', 'not with uppercase versions.
-async function expandAndPolishQuery(query) {
+async function expandAndPolishQuery(query, feed) {
+  if (feed !== "{ct.gov}") {
+    var contraction = query.trim() === "" ? "" : " AND ";
+    query = query + contraction + feed;
+  }
+
   var found = [],          // an array to collect the strings that are found
   rxp = /{([^}]+)}/g,
-  str = query,
   curMatch;
 
-  while( curMatch = rxp.exec( str ) ) {
+  while( curMatch = rxp.exec( query ) ) {
       found.push( curMatch[1] );
   }
 
@@ -47,6 +51,7 @@ async function expandAndPolishQuery(query) {
   }
 
   query = query.replaceAll(" or ", " OR ").replaceAll(" and ", " AND ").replaceAll(" not ", " NOT ");
+
   return ({
     query: query,
     dataAnnotations: dataAnnotations
@@ -55,6 +60,7 @@ async function expandAndPolishQuery(query) {
 
 export default function Trials(props) {
     const [lastQuery, setLastQuery] = useState(null);
+    const [lastFeed, setLastFeed] = useState(null);
     const [trials, setTrials] = useState(null);
     const [hideClosed, setHideClosed] = useState(false);
     const [activeSort, setActiveSort] = useState(0);
@@ -66,15 +72,16 @@ export default function Trials(props) {
     useEffect(() => {
       fetch(); 
       async function fetch() {
-        if (props.query !== lastQuery) {
-          var queryInfo = await expandAndPolishQuery(props.query);
+        if (props.query !== lastQuery || props.activeFeed != lastFeed) {
+          var queryInfo = await expandAndPolishQuery(props.query, props.activeFeed);
           var fetchedTrials = await fetchTrialsData(queryInfo.query, queryInfo.dataAnnotations);
           setFetchedTrials(fetchedTrials);
           setLastQuery(props.query);
+          setLastFeed(props.activeFeed);
           document.title = "'" + props.query + "' Trials";
         }
       }
-    }, [props.query, fetchedTrials]);
+    }, [props.query, props.activeFeed, fetchedTrials]);
 
     useEffect(() => { 
       fetch2();
@@ -193,7 +200,7 @@ export default function Trials(props) {
               {groupingHeader}
               <div key={trial.NCTId[0]} className="trial">
                   <div className={'oldstatus '+trial.OverallStatusStyle}>{sortOrders[activeSort].name !== "Phase" ? trial.phaseInfo.name+"-":false}{status}</div>
-                  <div className='interventionDiv intervention'><span>{getInterventions(trial, true)}</span></div>
+                  <div className='interventionDiv intervention tal'><span>{firstFew(getInterventions(trial, true), 3, ", ")}</span></div>
                   { sortOrders[activeSort].name !== "Sponsor" ? <div className='interventionDiv oldsponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
                   <div className='title'>Conditions: {firstFew(trial.Condition, 3, ", ")}</div>

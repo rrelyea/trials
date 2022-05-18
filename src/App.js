@@ -17,7 +17,7 @@ class SearchBox extends React.Component {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {query: '', queries: []}
+    this.state = {query: '', queries: [], feeds: {'ClinicalTrials.gov':'{ct.gov}'}, activeFeed: '{ct.gov}'}
     window.addEventListener('popstate', this.onBackButtonEvent);
   }
 
@@ -60,7 +60,16 @@ class App extends React.Component {
     var urlParams = new URLSearchParams(window.location.search);
     var query = urlParams.has('q') ? urlParams.get('q') : '';
     var queries = urlParams.has('qs') ? urlParams.get('qs').split(',') : [];
-    this.setState({query: query, queries: queries});
+    var feeds = this.state.feeds;
+    for (var i = 0; i < queries.length; i++) {
+      var terms = queries[i].split(':');
+      if (terms[terms.length-1].startsWith('{') && terms[terms.length-1].endsWith('}')) {
+        var key = terms.length > 1 ? terms[0] : terms[0];
+        feeds[key] = terms[terms.length-1];
+      }
+    }
+
+    this.setState({query: query, queries: queries, feeds: feeds});
   }
 
   keyDown = (event) => {
@@ -69,16 +78,20 @@ class App extends React.Component {
     }
   }
 
-  handleChange = (event) => {
+  chooseQuery = (event) => {
     this.setState({query:event.target.value});
     this.setSearchBoxValue(event.target.value);
+  }
+
+  chooseFeed = (event) => {
+    this.setState({activeFeed:event.target.value});
   }
 
   render() {
     var queryList = null;
     if (this.state.queries.length > 0) {
-      queryList = <><select onChange={this.handleChange}>
-        <option key='0' value=''>Choose a Prebuilt Query</option>
+      queryList = <><label>Saved Queries:&nbsp;<select onChange={this.chooseQuery}>
+        <option key='0' value=''></option>
         { this.state.queries.map((q)=>{
           var terms = q.split(':');
           if (terms.length > 1) {
@@ -87,17 +100,26 @@ class App extends React.Component {
             return <option key={q} value={q}>{q}</option>;
           }
         })}
-      </select>&nbsp;</>
+      </select></label>&nbsp;</>
+    }
+    var options = [];
+    for (const prop in this.state.feeds) {
+      options.push(<option value={this.state.feeds[prop]}>{prop}</option>)
     }
     return (
       <div className="App">
-          {queryList}
           <label>Search for&nbsp;
-            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />&nbsp; in ClinicalTrials.gov
+            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />&nbsp; in <span>
+              <select onChange={this.chooseFeed}>
+                {options}
+              </select>
+            </span>
           </label>{' '}
           <input type='button' value='Go' onClick={() => this.navigateTo(null)} />
-          {this.state.query !== "" ?
-          <Trials id="trials" query={this.state.query} /> :
+          <br />
+          {queryList}
+          {(this.state.activeFeed === '{ct.gov}' && this.state.query !== "") || this.state.activeFeed !== '{ct.gov}' ?
+          <Trials id="trials" query={this.state.query} activeFeed={this.state.activeFeed} /> :
           false }
       </div>
     );
