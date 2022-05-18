@@ -114,7 +114,7 @@ body {
   margin-top: 10px;
   margin-bottom: 10px;
 }
-.w200 {
+.w450 {
   width: 450px;
   display: inline-block;
   vertical-align: top;
@@ -126,6 +126,11 @@ body {
 }
 .w180 {
   width: 180px;
+  display: inline-block;
+  vertical-align: top;
+}
+.w210 {
+  width: 210px;
   display: inline-block;
   vertical-align: top;
 }

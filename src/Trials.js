@@ -213,21 +213,21 @@ export default function Trials(props) {
         groupBy: null,
         compare: null
       },     
-      {
-        name: "Approach",
-        groupBy: "annotations.approach".split('.'),
-        compare: function (trialA, trialB) { 
-          return (rankApproach(trialA) < rankApproach(trialB) ? -1 : 1)
+        {
+          name: "Approach",
+          groupBy: "annotations.approach".split('.'),
+          compare: function (trialA, trialB) { 
+            return (rankApproach(trialA) < rankApproach(trialB) ? -1 : 1)
+          }
+        },
+        {
+          name: "Condition",
+          groupBy: "annotations.condition".split('.'),
+          compare: function (trialA, trialB) { 
+            return (trialA.annotations?.condition < trialB.annotations?.condition ? -1 : 1)
+          }
         }
-      },
-      {
-        name: "Condition",
-        groupBy: "annotations.condition".split('.'),
-        compare: function (trialA, trialB) { 
-          return (trialA.annotations?.condition < trialB.annotations?.condition ? -1 : 1)
-        }
-      }
-    ];
+      ];
 
     var views = [
       {
@@ -286,17 +286,16 @@ export default function Trials(props) {
       return <>
               {groupingHeader}
               <div key={trial.NCTId[0]} className={trialStyle}>
-                  <span className='tal w200'>
-
-                  {trial.annotations != null ? trial.annotations.condition : firstFew(trial.Condition, 3, ", ")}
-                  {trial.annotations != null && trial.annotations.approachDetail != null ? " (" + trial.annotations.approachDetail +") - " : " - "}
-                  <a href={trial.annotations?.sponsorLink}>{ true ? (trial.annotations?.sponsor != null ? trial.annotations.sponsor : cleanSponsor(trial.LeadSponsorName)) : cleanSponsor(trial.LeadSponsorName)}</a>
-                  </span>
-                  <span className='tal w120'>
-                    {trial.phaseInfo.name} 
-                  </span>
-                  { modern ? <span className='tal w120'>
-                    <a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a>
+                  <span className='tal w450'>
+                    {trial.annotations != null ? trial.annotations.condition : firstFew(trial.Condition, 3, ", ")}
+                    {trial.annotations != null && trial.annotations.approachDetail != null ? " (" + trial.annotations.approachDetail +") - " : " - "}
+                    <a href={trial.annotations?.sponsorLink}>{ true ? (trial.annotations?.sponsor != null ? trial.annotations.sponsor : cleanSponsor(trial.LeadSponsorName)) : cleanSponsor(trial.LeadSponsorName)}</a>
+                    </span>
+                    <span className='tal w120'>
+                      {trial.phaseInfo.name} 
+                    </span>
+                    { modern ? <span className='tal w120'>
+                      <a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a>
                   </span> : false }
                   
                   
@@ -314,7 +313,7 @@ export default function Trials(props) {
                   <span className='tal w120'>
                     {trial.OverallStatus} 
                   </span>
-                  <span className='tal w200'>
+                  <span className='tal w450'>
                     <a href={'https://clinicaltrials.gov/ct2/show/'+trial.NCTId[0]}>{trial.BriefTitle}</a>
                   </span>
                   <span className='tal w120'>
@@ -326,7 +325,7 @@ export default function Trials(props) {
                   <span className='tal w120'>
                     {trial.phaseInfo.name} 
                   </span>
-                  <span className='tal w200'>
+                  <span className='tal w210'>
                     {firstFew(trial.LocationFacility, 3, ", ")}
                   </span>
               </div></>
@@ -386,7 +385,7 @@ export default function Trials(props) {
               {views.map((view)=> <option>{view.name}</option>)}
             </select>
           </label>
-        </div>  
+        </div>
         {trials !== null ? Object.entries(trials).map(([k,trial], lastPhase) =>
           {
             var sortHeader = null;
