@@ -26,13 +26,15 @@ async function expandUrls (url) {
   });
 }
 
-// expand {relative-uri} or {absolute-uri} and replace 'or', 'and', 'not with uppercase versions.
-async function expandAndPolishQuery(query, feed) {
+function incorporateFeedIntoQuery(query, feed) {
   if (feed !== "{ct.gov}") {
     var contraction = query.trim() === "" ? "" : " AND ";
     query = query + contraction + feed;
   }
-
+  return query;
+}
+// expand {relative-uri} or {absolute-uri} and replace 'or', 'and', 'not with uppercase versions.
+async function expandAndPolishQuery(query) {
   var found = [],          // an array to collect the strings that are found
   rxp = /{([^}]+)}/g,
   curMatch;
@@ -51,7 +53,6 @@ async function expandAndPolishQuery(query, feed) {
   }
 
   query = query.replaceAll(" or ", " OR ").replaceAll(" and ", " AND ").replaceAll(" not ", " NOT ");
-
   return ({
     query: query,
     dataAnnotations: dataAnnotations
@@ -66,6 +67,7 @@ export default function Trials(props) {
     const [activeSort, setActiveSort] = useState(0);
     const [activeView, setActiveView] = useState(0);
     const [trialCount, setTrialCount] = useState(0);
+    const [pubmedQuery, setPubmedQuery] = useState(0);
     const [pubmedCount, setPubmedCount] = useState(0);
     const [fetchedTrials, setFetchedTrials] = useState(null);
 
@@ -73,7 +75,9 @@ export default function Trials(props) {
       fetch(); 
       async function fetch() {
         if (props.query !== lastQuery || props.activeFeed != lastFeed) {
-          var queryInfo = await expandAndPolishQuery(props.query, props.activeFeed);
+          var queryPlusFeed = incorporateFeedIntoQuery(props.query, props.activeFeed);
+          var queryInfo = await expandAndPolishQuery(queryPlusFeed);
+
           var fetchedTrials = await fetchTrialsData(queryInfo.query, queryInfo.dataAnnotations);
           setFetchedTrials(fetchedTrials);
           setLastQuery(props.query);
@@ -86,12 +90,15 @@ export default function Trials(props) {
     useEffect(() => { 
       fetch2();
       async function fetch2() {
-        if (props.query != lastQuery) {
-          var results = await fetchPubMedData(props.query);
+        if (props.query != lastQuery || props.activeFeed != lastFeed) {
+          var queryPlusFeed = incorporateFeedIntoQuery(props.query, props.activeFeed);
+          var queryInfo = await expandAndPolishQuery(queryPlusFeed);
+          var results = await fetchPubMedData(queryInfo.query);
+          setPubmedQuery(queryInfo.query);
           setPubmedCount(results.esearchresult.count);
         }
       }
-     }, [props.query]);
+     }, [props.query, props.activeFeed, pubmedCount]);
 
      useEffect(() => {
       if (fetchedTrials !== null) {
@@ -171,11 +178,7 @@ export default function Trials(props) {
         method: arrowStyle,
       },
       {
-        name: 'Table (classic)',
-        method: tableStyle1,
-      },
-      {
-        name: 'Table (new)',
+        name: 'Table',
         method: tableStyle2,
       }
     ];
@@ -301,7 +304,7 @@ export default function Trials(props) {
           { trials !== null ? <>
           <label>Result count:&nbsp;
             <span className='hitCounts'>{"ClinicalTrials.gov (" + trialCount + tooManyWarning + ") |"}</span>{' '}
-            <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+props.query}>PubMed.gov{" (" + pubmedCount + ")"}</a>
+            <a className='hitCounts' href={'https://pubmed.ncbi.nlm.nih.gov/?term='+pubmedQuery}>PubMed.gov{" (" + pubmedCount + ")"}</a>
           </label>       
           </> : false }
         </div>

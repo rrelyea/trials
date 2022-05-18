@@ -4,7 +4,7 @@
     }
 
     export async function fetchPubMedData(query) {
-        var pubmedUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&term=' + query;
+        var pubmedUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmode=json&term=' + encodeURIComponent(query);
         return await GetData(pubmedUrl);
     }
 
@@ -23,7 +23,7 @@
       }
 
       while (moreToGet > 0) {
-        var url = 'https://clinicaltrials.gov/api/query/study_fields?expr='+query+'&fields=NCTId,Condition,LocationFacility,BriefTitle,StudyType,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&min_rnk='+minRank.toString()+'&max_rnk='+maxRank.toString();
+        var url = 'https://clinicaltrials.gov/api/query/study_fields?expr=' + encodeURIComponent(query) + '&fields=NCTId,Condition,LocationFacility,BriefTitle,StudyType,Phase,OverallStatus,WhyStopped,LeadSponsorName,InterventionName,StudyFirstPostDate,StartDate,StartDateType,LastUpdatePostDate,PrimaryCompletionDate,CompletionDate&fmt=JSON&min_rnk='+minRank.toString()+'&max_rnk='+maxRank.toString();
         var data = await GetData(url);
         if (data.StudyFieldsResponse != null && 'StudyFields' in data.StudyFieldsResponse) {
             trialCount = data.StudyFieldsResponse.NStudiesFound;
