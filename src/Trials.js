@@ -1,29 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTrialsData, fetchPubMedData, getInterventions, GetData, cleanSponsor, firstFew } from "./TrialUtilities.js";
+import { fetchTrialsData, fetchPubMedData, getInterventions, GetJsonData, cleanSponsor, firstFew } from "./TrialUtilities.js";
 
 async function expandUrls (url) {
   var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname + "/");
-  if (!urlToGet.toString().endsWith(".json")) {
-    urlToGet = urlToGet + ".json";
+  var extensionStart = urlToGet.href.lastIndexOf('.');
+  var extension = null;
+  if (extensionStart !== -1) {
+    extension = urlToGet.href.substring(extensionStart).toLowerCase();
+    switch (extension) {
+      case ".json":
+        break;
+      case ".csv":
+        break;
+      default:
+        break;
+    }
+  } else {
+    urlToGet = urlToGet.href + ".json";
+    extension = ".json";
   }
 
-  var dataAnnotations = await GetData(urlToGet);
-  var NCTIds = [];
-  dataAnnotations.data.forEach(trialInfo => {
-    var ids = trialInfo.trial.split(',');
-    ids.forEach(NCTId => {
-      if (NCTId != "")
-      NCTIds.push(NCTId);
-    });
-  });
-  
-  var find = "{" + url + "}";
-  var replace = "(" + NCTIds.join(" OR ") + ")";
-  return ({
-    regEx: new RegExp(find, "ig"),
-    replace: replace,
-    dataAnnotations: dataAnnotations
-  });
+  switch (extension) {
+    case ".json":
+      var dataAnnotations = await GetJsonData(urlToGet);
+      var NCTIds = [];
+      dataAnnotations.data.forEach(trialInfo => {
+        var ids = trialInfo.trial.split(',');
+        ids.forEach(NCTId => {
+          if (NCTId != "")
+          NCTIds.push(NCTId);
+        });
+      });
+      
+      var find = "{" + url + "}";
+      var replace = "(" + NCTIds.join(" OR ") + ")";
+      return ({
+        regEx: new RegExp(find, "ig"),
+        replace: replace,
+        dataAnnotations: dataAnnotations
+      });
+    case ".csv":
+      throw "no support for .csv files yet";
+  }
 }
 
 function incorporateFeedIntoQuery(query, feed) {
