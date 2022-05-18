@@ -58,18 +58,44 @@ async function expandAndPolishQuery(query) {
     dataAnnotations: dataAnnotations
   });
 }
+const useReactPath = () => {
+  const [path, setPath] = React.useState(window.location.href);
+  const listenToPopstate = () => {
+    const winPath = window.location.href;
+    setPath(winPath);
+  };
+  React.useEffect(() => {
+    window.addEventListener("popstate", listenToPopstate);
+    return () => {
+      window.removeEventListener("popstate", listenToPopstate);
+    };
+  }, []);
+  return path;
+};
 
 export default function Trials(props) {
     const [lastQuery, setLastQuery] = useState(null);
     const [lastFeed, setLastFeed] = useState(null);
     const [trials, setTrials] = useState(null);
     const [hideClosed, setHideClosed] = useState(false);
-    const [activeSort, setActiveSort] = useState(0);
-    const [activeView, setActiveView] = useState(0);
+    const [sort, setSort] = useState(0);
+    const [view, setView] = useState(0);
     const [trialCount, setTrialCount] = useState(0);
     const [pubmedQuery, setPubmedQuery] = useState(0);
     const [pubmedCount, setPubmedCount] = useState(0);
     const [fetchedTrials, setFetchedTrials] = useState(null);
+
+    const path = useReactPath();
+
+    useEffect(() => {
+      var urlParams = new URLSearchParams(window.location.search);
+      var sortParam = urlParams.has('sort') ? Number(urlParams.get('sort')) : 0;
+      var viewParam = urlParams.has('view') ? Number(urlParams.get('view')) : 0;
+      var hideClosedParam = urlParams.has('hideClosed') ? urlParams.get('hideClosed') : false;
+      setSort(sortParam);
+      setView(viewParam);
+      setHideClosed(hideClosedParam);
+    }, [path]);
 
     useEffect(() => {
       fetch(); 
@@ -109,11 +135,31 @@ export default function Trials(props) {
             trial.OverallStatus.toString() != "Unknown status" && 
             trial.OverallStatus.toString() != "Withdrawn" && 
             trial.OverallStatus.toString() != "Terminated"));
-        var trials = sortOrders[activeSort].name !== "None" ? filteredTrials.sort(sortOrders[activeSort].compare) : filteredTrials;
+        var trials = sortOrders[sort].name !== "None" ? filteredTrials.sort(sortOrders[sort].compare) : filteredTrials;
         setTrials(trials);
         setTrialCount(trials.length);
       }
-    }, [fetchedTrials, activeSort, hideClosed, activeView]);
+    }, [fetchedTrials, sort, hideClosed, view]);
+
+    function getDefaultValue(key) {
+      switch (key) {
+        case 'sort': return 0;
+        case 'view': return 0;
+        case 'hideClosed': return false;
+      }
+    }
+
+    function updateQueryStringValue(key, value) {
+      const params = new URLSearchParams(window.location.search);
+      if (value !== getDefaultValue(key)) {
+        params.set(key, value);
+      } else if (params.has(key)) {
+        params.delete(key);
+      }
+
+      var paramsString = params.toString();
+      window.history.replaceState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
+    }
 
     function rankApproach(trial) {
       var approach = trial.annotations?.approach;
@@ -183,16 +229,19 @@ export default function Trials(props) {
       }
     ];
 
-    function chooseGrouping(e) {
-      setActiveSort(Number(e.target.selectedIndex));
+    function chooseSort(e) {
+      setSort(e.target.selectedIndex);
+      updateQueryStringValue('sort', Number(e.target.selectedIndex));
     }
     
     function chooseView(e) {
-      setActiveView(Number(e.target.selectedIndex));
+      setView(Number(e.target.selectedIndex));
+      updateQueryStringValue('view', Number(e.target.selectedIndex));
     }
 
     function hideClosedChanged(e) {
       setHideClosed(e.target.checked);
+      updateQueryStringValue('hideClosed', e.target.checked);
     }
 
     function defaultStyle(trial, groupingHeader) {
@@ -202,21 +251,15 @@ export default function Trials(props) {
       return <>
               {groupingHeader}
               <div key={trial.NCTId[0]} className="trial">
-                  <div className={'oldstatus '+trial.OverallStatusStyle}>{sortOrders[activeSort].name !== "Phase" ? trial.phaseInfo.name+"-":false}{status}</div>
+                  <div className={'oldstatus '+trial.OverallStatusStyle}>{sortOrders[sort].name !== "Phase" ? trial.phaseInfo.name+"-":false}{status}</div>
                   <div className='interventionDiv intervention tal'><span>{firstFew(getInterventions(trial, true), 3, ", ")}</span></div>
-                  { sortOrders[activeSort].name !== "Sponsor" ? <div className='interventionDiv oldsponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
+                  { sortOrders[sort].name !== "Sponsor" ? <div className='interventionDiv oldsponsor'><span> ({trial.LeadSponsorName})</span></div> : false }
                   <div className='title'><a href={'https://beta.clinicaltrials.gov/study/'+trial.NCTId[0]}>{trial.NCTId[0]}</a> : <span>{trial.BriefTitle}</span></div>
                   <div className='title'>Conditions: {firstFew(trial.Condition, 3, ", ")}</div>
               </div></>
     }
 
-    function tableStyle1(trial, groupingHeader) {
-      return tableStyle(trial, groupingHeader, false);
-    }
-    function tableStyle2(trial, groupingHeader) {
-      return tableStyle(trial, groupingHeader, true);
-    }
-    function tableStyle(trial, groupingHeader, modern) {
+    function tableStyle2(trial, groupingHeader, modern=true) {
       var status = trial.OverallStatus;
       if (status == "Completed" || status == "Terminated") status = status + " " + new Date(trial.endDate).getFullYear();
       if (status == "Unknown status") status = "Unknown " + new Date(trial.LastUpdatePostDate).getFullYear();
@@ -311,37 +354,39 @@ export default function Trials(props) {
         <div className='status'></div>
 
         <div className='tbm10'>
-          <label><input type='checkbox' defaultValue={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span id='showClosedLabel'>Hide Closed</span></label>
-          <label className='lm10'>Sort by:&nbsp;
-          <select onChange={(e) => chooseGrouping(e)}>
-          {sortOrders.map((grouping)=> <option>{grouping.name}</option>)}
-          </select>
+          <label>
+            <input type='checkbox' checked={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span id='showClosedLabel'>Hide Closed</span>
           </label>
-          <label className='lm10'>View:&nbsp;<select onChange={(e) => chooseView(e)}>
-          {views.map((view)=> <option>{view.name}</option>)}
-          </select>
+          <label className='lm10'>Sort by:&nbsp;
+            <select onChange={(e) => chooseSort(e)} value={sortOrders[sort].name} >
+              {sortOrders.map((sortOrder)=> <option>{sortOrder.name}</option>)}
+            </select>
+          </label>
+          <label className='lm10'>View:&nbsp;
+            <select onChange={(e) => chooseView(e)} value={views[view].name}>
+              {views.map((view)=> <option>{view.name}</option>)}
+            </select>
           </label>
         </div>  
         {trials !== null ? Object.entries(trials).map(([k,trial], lastPhase) =>
           {
             var sortHeader = null;
-            if (sortOrders[activeSort].name !== "None") {
-              var groupingValue = trial;
-              for (var i = 0; i < sortOrders[activeSort].groupBy.length; i++) {
-                groupingValue = groupingValue[sortOrders[activeSort].groupBy[i]];
-                if (groupingValue == null) { break; }
+            if (sortOrders[sort].name !== "None") {
+              var sortValue = trial;
+              for (var i = 0; i < sortOrders[sort].groupBy.length; i++) {
+                sortValue = sortValue[sortOrders[sort].groupBy[i]];
+                if (sortValue == null) { break; }
               }
 
-              groupingValue = groupingValue != null ? groupingValue.toString() : sortOrders[activeSort].name + " Type Missing";
-              if (groupingValue != lastGroup) {
-                sortHeader = <div className='sortHeader'>{groupingValue}</div>;
+              sortValue = sortValue != null ? sortValue.toString() : sortOrders[sort].name + " Type Missing";
+              if (sortValue != lastGroup) {
+                sortHeader = <div className='sortHeader'>{sortValue}</div>;
               } 
 
-              lastGroup = groupingValue;
+              lastGroup = sortValue;
             }
 
-            return views[activeView].method(trial, sortHeader);
-            
+            return views[view].method(trial, sortHeader);
           })
         : <h3>searching for trials...</h3>}  
       </>;

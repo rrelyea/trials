@@ -1,7 +1,6 @@
 import './App.css';
 import React from 'react';
 import Trials from './Trials.js';
-import { GetData } from "./TrialUtilities.js";
 
 class SearchBox extends React.Component {
   get_value() {
@@ -17,7 +16,7 @@ class SearchBox extends React.Component {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {query: '', queries: [], feeds: {'ClinicalTrials.gov':'{ct.gov}'}, activeFeed: '{ct.gov}'}
+    this.state = {query: '', queries: [], feeds: {'ClinicalTrials.gov':'{ct.gov}'}, activeFeed: '{ct.gov}'};
     window.addEventListener('popstate', this.onBackButtonEvent);
   }
 
@@ -40,7 +39,7 @@ class App extends React.Component {
     }
 
     var paramsString = params.toString();
-    window.history.pushState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
+    window.history.replaceState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
   }
 
   onBackButtonEvent = () => {
@@ -56,10 +55,29 @@ class App extends React.Component {
     searchBox.value = query;
   }
 
+  getDefaultValue(key) {
+    switch (key) {
+      case 'feed': return "{ct.gov}";
+    }
+  }
+
+  updateQueryStringValue(key, value) {
+    const params = new URLSearchParams(window.location.search);
+    if (value !== this.getDefaultValue(key)) {
+      params.set(key, value);
+    } else if (params.has(key)) {
+      params.delete(key);
+    }
+
+    var paramsString = params.toString();
+    window.history.replaceState({}, null, paramsString.length === 0 ? `${window.location.pathname}` : `${window.location.pathname}?${params.toString()}`);
+  }
+
   componentDidMount() {
     var urlParams = new URLSearchParams(window.location.search);
     var query = urlParams.has('q') ? urlParams.get('q') : '';
     var queries = urlParams.has('qs') ? urlParams.get('qs').split(',') : [];
+    var activeFeed = urlParams.has('feed') ? urlParams.get('feed') : '{ct.gov}';
     var feeds = this.state.feeds;
     for (var i = 0; i < queries.length; i++) {
       var terms = queries[i].split(':');
@@ -69,7 +87,7 @@ class App extends React.Component {
       }
     }
 
-    this.setState({query: query, queries: queries, feeds: feeds});
+    this.setState({query: query, queries: queries, feeds: feeds, activeFeed: activeFeed });
   }
 
   keyDown = (event) => {
@@ -85,6 +103,7 @@ class App extends React.Component {
 
   chooseFeed = (event) => {
     this.setState({activeFeed:event.target.value});
+    this.updateQueryStringValue('feed', event.target.value);
   }
 
   render() {
@@ -110,7 +129,7 @@ class App extends React.Component {
       <div className="App">
           <label>Search for&nbsp;
             <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />&nbsp; in <span>
-              <select onChange={this.chooseFeed}>
+              <select onChange={this.chooseFeed} value={this.state.activeFeed}>
                 {options}
               </select>
             </span>
@@ -118,9 +137,9 @@ class App extends React.Component {
           <input type='button' value='Go' onClick={() => this.navigateTo(null)} />
           <br />
           {queryList}
-          {(this.state.activeFeed === '{ct.gov}' && this.state.query !== "") || this.state.activeFeed !== '{ct.gov}' ?
-          <Trials id="trials" query={this.state.query} activeFeed={this.state.activeFeed} /> :
-          false }
+          {(this.state.activeFeed == '{ct.gov}' && this.state.query !== "") || this.state.activeFeed !== '{ct.gov}' ?
+            <Trials id="trials" query={this.state.query} activeFeed={this.state.activeFeed} />
+          : false }
       </div>
     );
   }
