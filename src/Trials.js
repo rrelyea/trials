@@ -143,7 +143,7 @@ export default function Trials(props) {
           var queryInfo = await expandAndPolishQuery(queryPlusFeed);
           var results = await fetchPubMedData(queryInfo.query);
           setPubmedQuery(queryInfo.query);
-          setPubmedCount(results.esearchresult.count);
+          setPubmedCount('count' in results.esearchresult ? results.esearchresult.count : 0);
         }
       }
      }, [props.query, props.activeFeed, pubmedCount]);
@@ -364,6 +364,22 @@ export default function Trials(props) {
     var lastGroup = null;
     var tooManyWarning = trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
     return <>
+        <div className='tbm10'>
+          <label className='lm10'>Sort by&nbsp;
+            <select onChange={(e) => chooseSort(e)} value={sortOrders[sort].name} >
+              {sortOrders.map((sortOrder)=> <option>{sortOrder.name}</option>)}
+            </select>
+          </label>
+          <label className='lm10'>Style&nbsp;
+            <select onChange={(e) => chooseView(e)} value={view}>
+              {views.map((view)=> <option>{view.name}</option>)}
+            </select>
+          </label>{' '}
+          <label>
+            <input type='checkbox' checked={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span>Hide Closed</span>
+          </label>
+        </div>
+
         <div className='tm10'>&nbsp;
           { trials !== null ? <>
           <label>Result count:&nbsp;
@@ -372,23 +388,7 @@ export default function Trials(props) {
           </label>       
           </> : false }
         </div>
-        <div className='status'></div>
-
-        <div className='tbm10'>
-          <label>
-            <input type='checkbox' checked={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span>Hide Closed</span>
-          </label>
-          <label className='lm10'>Sort by:&nbsp;
-            <select onChange={(e) => chooseSort(e)} value={sortOrders[sort].name} >
-              {sortOrders.map((sortOrder)=> <option>{sortOrder.name}</option>)}
-            </select>
-          </label>
-          <label className='lm10'>View:&nbsp;
-            <select onChange={(e) => chooseView(e)} value={view}>
-              {views.map((view)=> <option>{view.name}</option>)}
-            </select>
-          </label>
-        </div>
+        
         {trials !== null ? Object.entries(trials).map(([k,trial], lastPhase) =>
           {
             var sortHeader = null;
