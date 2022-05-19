@@ -130,7 +130,11 @@ export default function Trials(props) {
           setFetchedTrials(fetchedTrials);
           setLastQuery(props.query);
           setLastFeed(props.activeFeed);
-          document.title = "'" + props.query + "' Trials";
+          if (props.query.trim() === "") {
+            document.title = "Trial Search";
+          } else {
+            document.title = "'" + props.query + "' Trials";
+          }
         }
       }
     }, [props.query, props.activeFeed, fetchedTrials]);
