@@ -3,7 +3,8 @@ import { fetchTrialsData, fetchPubMedData, getInterventions, GetJsonData, cleanS
 
 async function expandUrls (url) {
   var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname + "/");
-  var extensionStart = urlToGet.href.lastIndexOf('.');
+  var fileNameStart = urlToGet.href.lastIndexOf('/');
+  var extensionStart = urlToGet.href.lastIndexOf('.', fileNameStart);
   var extension = null;
   if (extensionStart !== -1) {
     extension = urlToGet.href.substring(extensionStart).toLowerCase();
