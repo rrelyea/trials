@@ -99,7 +99,7 @@ export default function Trials(props) {
     const [trials, setTrials] = useState(null);
     const [hideClosed, setHideClosed] = useState(false);
     const [sort, setSort] = useState(0);
-    const [view, setView] = useState(0);
+    const [view, setView] = useState("Classic");
     const [trialCount, setTrialCount] = useState(0);
     const [computedQuery, setComputedQuery] = useState(null);
     const [pubmedQuery, setPubmedQuery] = useState(null);
@@ -111,7 +111,7 @@ export default function Trials(props) {
     useEffect(() => {
       var urlParams = new URLSearchParams(window.location.search);
       var sortParam = urlParams.has('sort') ? Number(urlParams.get('sort')) : 0;
-      var viewParam = urlParams.has('view') ? Number(urlParams.get('view')) : 0;
+      var viewParam = urlParams.has('view') ? urlParams.get('view') : "Classic";
       var hideClosedParam = urlParams.has('hideClosed') ? urlParams.get('hideClosed') === 'true' : false;
       setSort(sortParam);
       setView(viewParam);
@@ -165,7 +165,7 @@ export default function Trials(props) {
     function getDefaultValue(key) {
       switch (key) {
         case 'sort': return 0;
-        case 'view': return 0;
+        case 'view': return "Classic";
         case 'hideClosed': return false;
       }
     }
@@ -233,11 +233,11 @@ export default function Trials(props) {
 
     var views = [
       {
-        name: 'ClinicalTrials.gov (classic)',
+        name: 'Classic',
         method: clinicalTrialsClassicStyle,
       },
       {
-        name: 'Intervention',
+        name: 'Modern',
         method: defaultStyle,
       },
       {
@@ -245,7 +245,7 @@ export default function Trials(props) {
         method: arrowStyle,
       },
       {
-        name: 'Table',
+        name: 'Condensed',
         method: tableStyle2,
       }
     ];
@@ -256,8 +256,8 @@ export default function Trials(props) {
     }
     
     function chooseView(e) {
-      setView(Number(e.target.selectedIndex));
-      updateQueryStringValue('view', Number(e.target.selectedIndex));
+      setView(views[e.target.selectedIndex].name);
+      updateQueryStringValue('view', views[e.target.selectedIndex].name);
     }
 
     function hideClosedChanged(e) {
@@ -383,7 +383,7 @@ export default function Trials(props) {
             </select>
           </label>
           <label className='lm10'>View:&nbsp;
-            <select onChange={(e) => chooseView(e)} value={views[view].name}>
+            <select onChange={(e) => chooseView(e)} value={view}>
               {views.map((view)=> <option>{view.name}</option>)}
             </select>
           </label>
@@ -406,7 +406,17 @@ export default function Trials(props) {
               lastGroup = sortValue;
             }
 
-            return views[view].method(trial, sortHeader);
+            var method = null;
+            for (var j = 0; j < views.length; j++) {
+              if (views[j].name == view) {
+                method = views[j].method;
+                break;
+              }
+            }
+
+            if (method != null) {
+              return method(trial, sortHeader);
+            }
           })
         : <h3>searching for trials...</h3>}  
       </>;

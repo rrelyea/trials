@@ -33,7 +33,6 @@ import Papa from 'papaparse';
       var trials = [];
       var trialCount = 0;
   
-      console.log("query:",query);
       if (query.trim() == "") return trials;
 
       var annotationsByTrial = {};
