@@ -365,17 +365,17 @@ export default function Trials(props) {
     var tooManyWarning = trialCount > 6000 ? " [revise terms, only 6000 shown]" : "";
     return <>
         <div className='tbm10'>
-          <label className='lm10'>Sort by&nbsp;
+          <label className='lm10 dib'>Sort by&nbsp;
             <select onChange={(e) => chooseSort(e)} value={sortOrders[sort].name} >
               {sortOrders.map((sortOrder)=> <option>{sortOrder.name}</option>)}
             </select>
           </label>
-          <label className='lm10'>Style&nbsp;
+          <label className='lm10 dib'>Style&nbsp;
             <select onChange={(e) => chooseView(e)} value={view}>
               {views.map((view)=> <option>{view.name}</option>)}
             </select>
           </label>{' '}
-          <label>
+          <label className='dib'>
             <input type='checkbox' checked={hideClosed} onChange={(e) => hideClosedChanged(e)} /><span>Hide Closed</span>
           </label>
         </div>

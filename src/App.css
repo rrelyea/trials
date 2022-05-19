@@ -100,6 +100,9 @@ body {
   text-align: left;
   margin-top:2px;
 }
+.dib {
+  display: inline-block;
+}
 .hitCounts {
   font-weight: bold;
   margin-top: 10px;

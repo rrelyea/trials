@@ -132,15 +132,15 @@ class App extends React.Component {
     }
     return (
       <div className="App">
-          <label>Search for&nbsp;
-            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} /> in <span>
+          <label className='dib'>Search for&nbsp;
+            <SearchBox id='searchBox' query={this.state.query} onKeyDown={this.keyDown} />{' '}
+            <input type='button' value='Go' onClick={() => this.navigateTo(null)} />&nbsp;&nbsp;
+            <label className='dib'>in&nbsp;
               <select onChange={this.chooseFeed} value={this.state.activeFeed}>
                 {options}
               </select>
-            </span>
+            </label>
           </label>{' '}
-          <input type='button' value='Go' onClick={() => this.navigateTo(null)} />
-          <br />
           {queryList}
         <Trials id="trials" query={this.state.query} activeFeed={this.state.activeFeed} />
       </div>
