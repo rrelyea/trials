@@ -53,6 +53,7 @@ function incorporateFeedIntoQuery(query, feed) {
   }
   return query;
 }
+
 // expand {relative-uri} or {absolute-uri} and replace 'or', 'and', 'not with uppercase versions.
 async function expandAndPolishQuery(query) {
   var found = [],          // an array to collect the strings that are found

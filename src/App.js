@@ -9,7 +9,7 @@ class SearchBox extends React.Component {
   }
 
   render() {
-    return (<span><input type='text' id='searchBox' placeholder='Condition/Treamtment' defaultValue={this.props.query} onKeyDown={this.props.onKeyDown} /></span>);
+    return (<span><input type='text' id='searchBox' placeholder='Condition/Treatment' defaultValue={this.props.query} onKeyDown={this.props.onKeyDown} /></span>);
   }
 }
 
