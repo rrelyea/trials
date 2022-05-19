@@ -79,15 +79,18 @@ class App extends React.Component {
     var queries = urlParams.has('qs') ? urlParams.get('qs').split(',') : [];
     var activeFeed = urlParams.has('feed') ? urlParams.get('feed') : '{ct.gov}';
     var feeds = this.state.feeds;
+    var queriesToShow = [];
     for (var i = 0; i < queries.length; i++) {
       var terms = queries[i].split(':');
       if (terms[terms.length-1].startsWith('{') && terms[terms.length-1].endsWith('}')) {
         var key = terms.length > 1 ? terms[0] : terms[0];
         feeds[key] = terms[terms.length-1];
+      } else {
+        queriesToShow.push(queries[i]);
       }
     }
 
-    this.setState({query: query, queries: queries, feeds: feeds, activeFeed: activeFeed });
+    this.setState({query: query, queries: queriesToShow, feeds: feeds, activeFeed: activeFeed });
   }
 
   keyDown = (event) => {
@@ -97,8 +100,10 @@ class App extends React.Component {
   }
 
   chooseQuery = (event) => {
-    this.setState({query:event.target.value});
-    this.setSearchBoxValue(event.target.value);
+    if (event.target.value !== '') {
+      this.setState({query:event.target.value});
+      this.setSearchBoxValue(event.target.value);
+    }
   }
 
   chooseFeed = (event) => {
@@ -137,9 +142,7 @@ class App extends React.Component {
           <input type='button' value='Go' onClick={() => this.navigateTo(null)} />
           <br />
           {queryList}
-          {(this.state.activeFeed == '{ct.gov}' && this.state.query !== "") || this.state.activeFeed !== '{ct.gov}' ?
-            <Trials id="trials" query={this.state.query} activeFeed={this.state.activeFeed} />
-          : false }
+        <Trials id="trials" query={this.state.query} activeFeed={this.state.activeFeed} />
       </div>
     );
   }

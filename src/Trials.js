@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTrialsData, fetchPubMedData, getInterventions, GetJsonData, cleanSponsor, firstFew } from "./TrialUtilities.js";
+import { fetchTrialsData, fetchPubMedData, getInterventions, GetJsonData, cleanSponsor, firstFew, GetCsvData } from "./TrialUtilities.js";
 
 async function expandUrls (url) {
-  var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname);
+  var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname + "/");
   var fileNameStart = urlToGet.href.lastIndexOf('/');
   var extensionStart = urlToGet.href.lastIndexOf('.');
   var extension = null;
@@ -41,7 +41,8 @@ async function expandUrls (url) {
         dataAnnotations: dataAnnotations
       });
     case ".csv":
-      throw "no support for .csv files yet";
+      var dataAnnotations = await GetCsvData(urlToGet);
+      break;
   }
 }
 
@@ -232,12 +233,12 @@ export default function Trials(props) {
 
     var views = [
       {
-        name: 'Default',
-        method: defaultStyle,
-      },
-      {
         name: 'ClinicalTrials.gov (classic)',
         method: clinicalTrialsClassicStyle,
+      },
+      {
+        name: 'Intervention',
+        method: defaultStyle,
       },
       {
         name: 'Arrow',

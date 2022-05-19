@@ -1,6 +1,24 @@
+import Papa from 'papaparse';
+    
     export async function GetJsonData(url) {
         return fetch(url)
         .then(response => response.json())
+    }
+
+    export async function GetCsvData(url) {
+        var result = null;
+        Papa.parse(url.toString(), {
+            download: true,
+            header: true,
+            complete: function(results) {
+                result = results;
+                console.log(results);
+            }
+        });
+        while (result == null) {
+            console.log('.');
+        }
+        return result.data;
     }
 
     export async function fetchPubMedData(query) {
@@ -15,6 +33,9 @@
       var trials = [];
       var trialCount = 0;
   
+      console.log("query:",query);
+      if (query.trim() == "") return trials;
+
       var annotationsByTrial = {};
       if (dataAnnotations != null) {
         for (var i = 0; i < dataAnnotations.data.length; i++) {
