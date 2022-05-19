@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { fetchTrialsData, fetchPubMedData, getInterventions, GetJsonData, cleanSponsor, firstFew } from "./TrialUtilities.js";
 
 async function expandUrls (url) {
-  var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname + "/");
+  var urlToGet = new URL(url, window.location.protocol + "//" + window.location.hostname + ":" + window.location.port + window.location.pathname);
   var fileNameStart = urlToGet.href.lastIndexOf('/');
-  var extensionStart = urlToGet.href.lastIndexOf('.', fileNameStart);
+  var extensionStart = urlToGet.href.lastIndexOf('.');
   var extension = null;
-  if (extensionStart !== -1) {
+  if (extensionStart !== -1 && extensionStart > fileNameStart) {
     extension = urlToGet.href.substring(extensionStart).toLowerCase();
     switch (extension) {
       case ".json":
