@@ -1,3 +1,3 @@
 # Trials Search
 
-https://rrelyea.github.io/trials is the site that runs this code.
+https://rrelyea.github.io/trials now redirects to https://clinicaltrials.fyi
