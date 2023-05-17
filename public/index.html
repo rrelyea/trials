@@ -27,11 +27,17 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HC2PX2036Q"></script>
     <script>
+      function redirect() {
+        var redirectUrl = "https://clinicaltrials.fyi";
+        window.location.replace(redirectUrl);
+      }
+
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
       gtag('config', 'G-HC2PX2036Q');
+      window.setTimeout(redirect, 1000);
     </script>
   </head>
   <body>
